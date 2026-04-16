@@ -1,0 +1,126 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Playfair Display", ui-serif, Georgia, serif;
+  
+  --color-bg: var(--bg-color, #f3f3f3);
+  --color-surface: var(--surface-color, #ffffff);
+  --color-surface-hover: var(--surface-hover-color, #f9f9f9);
+  --color-text: var(--text-color, #1a1a1a);
+  --color-text-muted: var(--text-muted-color, #666666);
+  --color-border: var(--border-color, #e5e5e5);
+  --color-brand: #6750A4; /* Pona Purple */
+  --color-brand-light: #E8DEF8;
+  
+  /* Shadcn compatibility */
+  --color-background: var(--bg-color, #f3f3f3);
+  --color-foreground: var(--text-color, #1a1a1a);
+  --color-primary: var(--text-color, #1a1a1a);
+  --color-primary-foreground: var(--surface-color, #ffffff);
+  --color-muted: var(--border-color, #e5e5e5);
+  --color-muted-foreground: var(--text-muted-color, #666666);
+  --color-accent: var(--border-color, #e5e5e5);
+  --color-accent-foreground: var(--text-color, #1a1a1a);
+  --color-card: var(--surface-color, #ffffff);
+  --color-card-foreground: var(--text-color, #1a1a1a);
+}
+
+[data-theme="white"] {
+  --bg-color: #ffffff;
+  --surface-color: #f9f9f9;
+  --surface-hover-color: #f0f0f0;
+  --text-color: #1a1a1a;
+  --text-muted-color: #666666;
+  --border-color: #eeeeee;
+}
+
+[data-theme="graphite"] {
+  --bg-color: #1a1a1a;
+  --surface-color: #262626;
+  --surface-hover-color: #333333;
+  --text-color: #ffffff;
+  --text-muted-color: #a3a3a3;
+  --border-color: #404040;
+}
+
+[data-theme="orange"] {
+  --bg-color: #fffaf0;
+  --surface-color: #fff5e6;
+  --surface-hover-color: #ffebcc;
+  --text-color: #4a3728;
+  --text-muted-color: #8c735e;
+  --border-color: #f0e0d0;
+}
+
+[data-theme="purple"] {
+  --bg-color: #120d1d;
+  --surface-color: #1e162e;
+  --surface-hover-color: #2d2145;
+  --text-color: #f3effa;
+  --text-muted-color: #b3a1d1;
+  --border-color: #3d2d5c;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-bg text-text font-sans antialiased;
+  }
+  ::selection {
+    background-color: #E8DEF8;
+    color: #1D192B;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-serif italic font-normal tracking-wide text-gray-800;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 0px;
+  background: transparent;
+}
+
+.prose-custom {
+  @apply max-w-none;
+}
+.prose-custom p {
+  @apply text-inherit leading-relaxed font-light;
+}
+.prose-custom p:not(:last-child) {
+  @apply mb-4;
+}
+.prose-custom h1, .prose-custom h2, .prose-custom h3 {
+  @apply font-serif italic font-normal text-inherit mt-8 mb-4 opacity-90;
+}
+.prose-custom h1 { @apply text-4xl; }
+.prose-custom h2 { @apply text-3xl; }
+.prose-custom h3 { @apply text-2xl; }
+.prose-custom ul { @apply list-disc pl-5 mb-4 text-inherit font-light space-y-2 opacity-90; }
+.prose-custom ol { @apply list-decimal pl-5 mb-4 text-inherit font-light space-y-2 opacity-90; }
+.prose-custom li::marker { @apply text-brand opacity-50; }
+.prose-custom table {
+  @apply w-full border-collapse mb-6 text-sm text-inherit;
+}
+.prose-custom th {
+  @apply bg-surface-hover border border-border px-4 py-2 text-left font-semibold text-inherit;
+}
+.prose-custom td {
+  @apply border border-border px-4 py-2 text-inherit opacity-80;
+}
+.prose-custom tr:nth-child(even) {
+  @apply bg-surface-hover/50;
+}
+.prose-custom code {
+  @apply bg-red-50 text-red-500 px-1.5 py-0.5 rounded text-sm font-mono;
+}
+.prose-custom pre {
+  @apply bg-surface border border-border rounded-xl p-4 overflow-x-auto my-4;
+}
+.prose-custom pre code {
+  @apply bg-transparent text-text p-0 text-sm;
+}

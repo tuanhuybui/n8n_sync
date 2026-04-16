@@ -1,0 +1,6 @@
+{
+  "name": "n8n AI Agent",
+  "description": "Giao diện Chat chuyên nghiệp kết nối với n8n AI Agents, hỗ trợ Markdown, LaTeX và Code blocks.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
