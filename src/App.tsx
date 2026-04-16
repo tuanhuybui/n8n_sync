@@ -4,6 +4,7 @@ import { ChatInput } from './components/chat/ChatInput';
 import { SettingsModal } from './components/chat/SettingsModal';
 import { InfoPopover } from './components/chat/InfoPopover';
 import { CoffeePopover } from './components/chat/CoffeePopover';
+import { ConfigGuide } from './components/chat/ConfigGuide';
 import { ChatSession, Message, N8NConfig } from './types';
 import { sendToN8N } from './services/n8nService';
 import { Toaster, toast } from 'sonner';
@@ -622,19 +623,46 @@ export default function App() {
             className="flex-grow overflow-y-auto pt-20 md:pt-24"
           >
             {currentSession?.messages.length === 0 ? (
-              <div className="h-full flex flex-col items-center justify-center text-center px-4">
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="space-y-6"
-                >
-                  <h1 className="text-4xl md:text-6xl font-serif italic text-text/90 font-light tracking-tight">
-                    Chat IU
-                  </h1>
-                  <p className="text-text-muted text-lg md:text-xl font-light max-w-md mx-auto">
-                    Kết nối Agent từ webhook của bạn và bắt đầu trò chuyện.
-                  </p>
-                </motion.div>
+              <div className="min-h-full flex flex-col">
+                <div className="min-h-[70vh] flex flex-col items-center justify-start pt-[15vh] text-center px-4 relative flex-shrink-0 pb-12">
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="space-y-6"
+                  >
+                    <h1 className="text-4xl md:text-6xl font-serif italic text-text/90 font-light tracking-tight">
+                      Chat IU
+                    </h1>
+                    <p className="text-text-muted text-lg md:text-xl font-light max-w-md mx-auto">
+                      Kết nối Agent từ webhook của bạn và bắt đầu trò chuyện.
+                    </p>
+                  </motion.div>
+
+                  <motion.button
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 1, duration: 1 }}
+                    onClick={() => {
+                      scrollAreaRef.current?.scrollTo({
+                        top: window.innerHeight,
+                        behavior: 'smooth'
+                      });
+                    }}
+                    className="mt-32 flex flex-col items-center gap-4 text-text-muted hover:text-text transition-all cursor-pointer group"
+                  >
+                    <span className="text-[9px] uppercase tracking-[0.4em] font-medium opacity-40 group-hover:opacity-100 transition-opacity duration-500">Hướng dẫn kết nối</span>
+                    <motion.div
+                      animate={{ y: [0, 8, 0] }}
+                      transition={{ repeat: Infinity, duration: 2, ease: "easeInOut" }}
+                    >
+                      <ChevronDown size={24} strokeWidth={1} />
+                    </motion.div>
+                  </motion.button>
+                </div>
+
+                <div id="config-guide">
+                  <ConfigGuide />
+                </div>
               </div>
             ) : (
               <div className="flex flex-col max-w-5xl w-full mx-auto pb-48 px-4 md:px-12">

@@ -1,5 +1,39 @@
 import { Message, WebhookProfile } from '../types';
 
+const extractMessageFromData = (data: any): string => {
+  if (data === null || data === undefined) return '';
+  if (typeof data === 'string') return data;
+  if (typeof data === 'number' || typeof data === 'boolean') return String(data);
+  
+  if (Array.isArray(data)) {
+    if (data.length === 0) return '';
+    // If all elements are strings, join them. Otherwise, take the first one.
+    if (data.every(item => typeof item === 'string')) return data.join('\n');
+    return extractMessageFromData(data[0]);
+  }
+  
+  if (typeof data === 'object') {
+    // 1. Check common n8n/AI response keys
+    const commonKeys = ['output', 'response', 'text', 'message', 'answer', 'content', 'result', 'data'];
+    for (const key of commonKeys) {
+      if (data[key] !== undefined && data[key] !== null) {
+        return extractMessageFromData(data[key]);
+      }
+    }
+    
+    // 2. If no known keys, but it has only one key, recurse into that key
+    const keys = Object.keys(data);
+    if (keys.length === 1) {
+      return extractMessageFromData(data[keys[0]]);
+    }
+    
+    // 3. Last resort: Return prettified JSON
+    return '```json\n' + JSON.stringify(data, null, 2) + '\n```';
+  }
+  
+  return String(data);
+};
+
 export const sendToN8N = async (
   message: string,
   history: Message[],
@@ -55,21 +89,24 @@ export const sendToN8N = async (
       if (response.status === 0 || !response.status) {
         throw new Error('Network error or CORS issue. If using Direct Connection, ensure your n8n instance allows CORS from this domain.');
       }
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error || `n8n error (${response.status})`);
+      const errorText = await response.text().catch(() => '');
+      try {
+        const errorData = JSON.parse(errorText);
+        throw new Error(errorData.error || `n8n error (${response.status})`);
+      } catch {
+        throw new Error(errorText || `n8n error (${response.status})`);
+      }
     }
 
-    const data = await response.json();
-    
-    // Handle common n8n response patterns
-    if (typeof data === 'string') return data;
-    if (data.output) return data.output;
-    if (data.response) return data.response;
-    if (data.text) return data.text;
-    if (data.message) return data.message;
-    
-    // If it's an object but we don't recognize the key, return it as stringified JSON
-    return typeof data === 'object' ? JSON.stringify(data, null, 2) : String(data);
+    const text = await response.text();
+    let data;
+    try {
+      data = JSON.parse(text);
+      return extractMessageFromData(data);
+    } catch {
+      // If not JSON, return the raw text
+      return text;
+    }
   } catch (error) {
     console.error('Error sending to n8n:', error);
     throw error;
