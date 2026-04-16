@@ -31,6 +31,9 @@ async function startServer() {
     }
 
     try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 300000); // 5 minutes timeout
+
       const response = await fetch(webhookUrl, {
         method: "POST",
         headers,
@@ -39,7 +42,10 @@ async function startServer() {
           history: history.map((m: any) => ({ role: m.role, content: m.content })),
           timestamp: new Date().toISOString(),
         }),
+        signal: controller.signal,
       });
+      
+      clearTimeout(timeoutId);
 
       const contentType = response.headers.get("content-type");
       let data;
@@ -73,9 +79,14 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
+  const server = app.listen(PORT, "0.0.0.0", () => {
     console.log(`Server running on http://localhost:${PORT}`);
   });
+
+  // Increase timeout to 5 minutes (300,000 ms) for long-running workflows
+  server.setTimeout(300000);
+  server.keepAliveTimeout = 300000;
+  server.headersTimeout = 301000;
 }
 
 startServer();

@@ -45,6 +45,9 @@ export const sendToN8N = async (
     throw new Error('Webhook URL is not configured');
   }
 
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 5 * 60 * 1000); // 5 minutes timeout
+
   try {
     let response: Response;
     const body: any = {
@@ -53,6 +56,9 @@ export const sendToN8N = async (
       history: history.map(m => ({ role: m.role, content: m.content })),
       timestamp: new Date().toISOString(),
     };
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 300000); // 5 mins
 
     if (profile.useProxy === false) {
       // Direct connection (Maximum Privacy)
@@ -70,6 +76,7 @@ export const sendToN8N = async (
         method: 'POST',
         headers,
         body: JSON.stringify(body),
+        signal: controller.signal,
       });
     } else {
       // Proxy connection (Default)
@@ -82,8 +89,10 @@ export const sendToN8N = async (
           ...profile,
           ...body,
         }),
+        signal: controller.signal,
       });
     }
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
       // ... same error handling as before ...
@@ -168,8 +177,13 @@ export const sendToN8N = async (
     } catch {
       return fullText;
     }
-  } catch (error) {
+  } catch (error: any) {
+    if (error.name === 'AbortError') {
+      throw new Error('Yêu cầu đã quá thời gian chờ (5 phút). Vui lòng thử lại sau.');
+    }
     console.error('Error sending to n8n:', error);
     throw error;
+  } finally {
+    clearTimeout(timeoutId);
   }
 };

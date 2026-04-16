@@ -807,23 +807,28 @@ export default function App() {
                         animate={{ opacity: 1 }}
                         className="py-6 px-4"
                       >
-                        <div className="flex gap-1.5 items-end h-4">
-                          {[0, 1, 2].map((i) => (
-                            <motion.div
-                              key={i}
-                              animate={{ 
-                                y: [0, -6, 0],
-                                opacity: [0.3, 1, 0.3] 
-                              }}
-                              transition={{ 
-                                repeat: Infinity, 
-                                duration: 0.8, 
-                                delay: i * 0.15,
-                                ease: "easeInOut"
-                              }}
-                              className="w-1.5 h-1.5 rounded-full bg-brand"
-                            />
-                          ))}
+                        <div className="flex gap-2 items-end h-8">
+                          {[0, 1, 2].map((i) => {
+                            const heights = [-20, -35, -15];
+                            const delays = [0, 0.15, 0.3];
+                            const durations = [0.7, 0.85, 0.6];
+                            return (
+                              <motion.div
+                                key={i}
+                                animate={{ 
+                                  y: [0, heights[i], 0],
+                                  opacity: [0.4, 1, 0.4] 
+                                }}
+                                transition={{ 
+                                  repeat: Infinity, 
+                                  duration: durations[i], 
+                                  delay: delays[i],
+                                  ease: "easeInOut"
+                                }}
+                                className="w-2 h-2 rounded-full bg-brand"
+                              />
+                            )
+                          })}
                         </div>
                       </motion.div>
                     )}
