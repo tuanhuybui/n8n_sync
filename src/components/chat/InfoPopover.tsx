@@ -11,63 +11,63 @@ export const InfoPopover: React.FC<InfoPopoverProps> = ({ onClearData, connectio
   const [showConfirm, setShowConfirm] = useState(false);
 
   return (
-    <div className="space-y-8 p-3 text-text-muted">
-      <div className="flex items-center justify-between">
-        <h3 className="text-[10px] uppercase font-semibold text-text tracking-[0.2em]">Bảo mật</h3>
+    <div className="space-y-6 p-4 text-text-muted">
+      <div className="flex items-center justify-between border-b border-gray-100 pb-4">
+        <h3 className="text-xs uppercase font-semibold text-text tracking-[0.2em]">Bảo mật</h3>
         <span className={cn(
-          "text-[9px] font-medium uppercase tracking-tighter",
-          connectionType === 'direct' ? "text-green-500" : "text-blue-500"
+          "text-[10px] font-medium uppercase tracking-tighter px-2 py-0.5 rounded-full",
+          connectionType === 'direct' ? "bg-green-50 text-green-600" : "bg-blue-50 text-blue-600"
         )}>
-          {connectionType === 'direct' ? 'Direct' : 'Proxy'}
+          {connectionType === 'direct' ? 'Direct Connection' : 'Proxy Mode'}
         </span>
       </div>
       
       <div className="space-y-6">
         <section>
-          <h4 className="text-[10px] font-semibold text-text uppercase tracking-widest mb-1.5 transition-colors group-hover:text-brand">HTTPS</h4>
-          <p className="text-[10px] leading-relaxed opacity-70">
-            Dữ liệu truyền tải được mã hóa toàn đầu, không thể bị nghe lén.
+          <h4 className="text-[11px] font-semibold text-text uppercase tracking-widest mb-2 transition-colors group-hover:text-brand">Truyền tải</h4>
+          <p className="text-xs leading-relaxed opacity-80">
+            Dữ liệu được mã hóa truyền tải an toàn, ngăn chặn mọi hành vi nghe lén.
           </p>
         </section>
 
         <section>
-          <h4 className="text-[10px] font-semibold text-text uppercase tracking-widest mb-1.5">Local Storage</h4>
-          <p className="text-[10px] leading-relaxed opacity-70">
-            Webhook URL và Key được lưu duy nhất tại trình duyệt của bạn.
+          <h4 className="text-[11px] font-semibold text-text uppercase tracking-widest mb-2">Lưu trữ cục bộ</h4>
+          <p className="text-xs leading-relaxed opacity-80">
+            Webhook URL và lịch sử chat được lưu duy nhất tại trình duyệt của bạn (Local Storage).
           </p>
         </section>
 
         <section>
-          <h4 className="text-[10px] font-semibold text-text uppercase tracking-widest mb-1.5">No Tracking</h4>
-          <p className="text-[10px] leading-relaxed opacity-70">
-            Không sử dụng cookies hay bất kỳ hệ thống theo dõi bên thứ ba nào.
+          <h4 className="text-[11px] font-semibold text-text uppercase tracking-widest mb-2">Quyền riêng tư</h4>
+          <p className="text-xs leading-relaxed opacity-80">
+            Không sử dụng cookies hay bất kỳ hệ thống theo dõi hành vi của bên thứ ba nào.
           </p>
         </section>
       </div>
 
-      <div className="pt-6 border-t border-gray-50 space-y-4">
+      <div className="pt-6 border-t border-gray-100 space-y-5">
         {!showConfirm ? (
           <button 
             onClick={() => setShowConfirm(true)}
-            className="w-full text-left text-[9px] uppercase tracking-widest text-gray-400 hover:text-red-500 transition-colors py-1"
+            className="w-full text-left text-[10px] uppercase font-medium tracking-widest text-gray-400 hover:text-red-500 transition-colors py-1"
           >
-            Xóa sạch dữ liệu
+            Xóa sạch dữ liệu ứng dụng
           </button>
         ) : (
           <div className="space-y-3 animate-in fade-in slide-in-from-top-1">
-            <p className="text-[9px] text-red-500 font-medium">Bạn có chắc chắn? Thao tác này sẽ xóa mọi thứ ngay lập tức.</p>
+            <p className="text-[10px] text-red-500 font-medium leading-relaxed">Bạn có chắc chắn? Thao tác này sẽ xóa mọi cấu hình và lịch sử chat ngay lập tức.</p>
             <div className="flex gap-4">
               <button 
                 onClick={onClearData}
-                className="text-[9px] font-bold text-red-600 uppercase tracking-widest hover:underline"
+                className="text-[10px] font-bold text-red-600 uppercase tracking-widest hover:underline"
               >
-                Xác nhận
+                Xác nhận xóa
               </button>
               <button 
                 onClick={() => setShowConfirm(false)}
-                className="text-[9px] font-medium text-gray-400 uppercase tracking-widest"
+                className="text-[10px] font-medium text-gray-400 uppercase tracking-widest"
               >
-                Hủy
+                Hủy bỏ
               </button>
             </div>
           </div>
@@ -77,9 +77,9 @@ export const InfoPopover: React.FC<InfoPopoverProps> = ({ onClearData, connectio
           href="https://github.com/tuanhuybui/n8n_sync" 
           target="_blank"
           rel="noopener noreferrer"
-          className="flex items-center gap-1.5 text-[9px] uppercase tracking-widest text-gray-300 hover:text-brand transition-colors"
+          className="flex items-center gap-2 text-[10px] uppercase font-medium tracking-widest text-gray-300 hover:text-brand transition-colors"
         >
-          Source Code <ArrowUpRight size={8} />
+          Source Code <ArrowUpRight size={10} strokeWidth={1.2} />
         </a>
       </div>
     </div>

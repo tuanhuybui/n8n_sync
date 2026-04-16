@@ -1,9 +1,14 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500;1,600&family=JetBrains+Mono:wght@400;500&family=Outfit:wght@300;400;500;600&display=swap');
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-serif: "Playfair Display", ui-serif, Georgia, serif;
+  --font-modern: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-elegant: "Playfair Display", ui-serif, Georgia, serif;
+  --font-technical: "JetBrains Mono", monospace;
+  --font-friendly: "Outfit", sans-serif;
+  
+  --font-sans: var(--font-current, var(--font-modern));
+  --font-serif: var(--font-elegant);
   
   --color-bg: var(--bg-color, #f3f3f3);
   --color-surface: var(--surface-color, #ffffff);
@@ -76,14 +81,14 @@
     @apply border-border;
   }
   body {
-    @apply bg-bg text-text font-sans antialiased;
+    @apply bg-bg text-text font-sans antialiased font-light;
   }
   ::selection {
     background-color: #E8DEF8;
     color: #1D192B;
   }
   h1, h2, h3, h4, h5, h6 {
-    @apply font-serif italic font-normal tracking-wide text-gray-800;
+    @apply font-sans italic font-normal tracking-wide text-gray-800;
   }
 }
 
@@ -105,7 +110,7 @@
   @apply mb-4;
 }
 .prose-custom h1, .prose-custom h2, .prose-custom h3 {
-  @apply font-serif italic font-normal text-inherit mt-8 mb-4 opacity-90;
+  @apply font-sans italic font-normal text-inherit mt-8 mb-4 opacity-90;
 }
 .prose-custom h1 { @apply text-4xl; }
 .prose-custom h2 { @apply text-3xl; }

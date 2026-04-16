@@ -8,7 +8,7 @@ import { ConfigGuide } from './components/chat/ConfigGuide';
 import { ChatSession, Message, N8NConfig } from './types';
 import { sendToN8N } from './services/n8nService';
 import { Toaster, toast } from 'sonner';
-import { Plus, Search, Settings, Coffee, Trash2, Palette, Info, Type, ChevronDown } from 'lucide-react';
+import { Plus, Search, Settings, Coffee, Trash2, Palette, Info, Type, ChevronDown, CaseSensitive } from 'lucide-react';
 import { Button } from '@/components/ui/ui-button';
 import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -33,8 +33,10 @@ const STORAGE_KEY_SESSIONS = 'n8n_chat_sessions';
 const STORAGE_KEY_CONFIG = 'n8n_chat_config';
 const STORAGE_KEY_THEME = 'n8n_chat_theme';
 const STORAGE_KEY_FONT_SIZE = 'n8n_chat_font_size';
+const STORAGE_KEY_FONT_FAMILY = 'n8n_chat_font_family';
 
 type Theme = 'default' | 'white' | 'graphite' | 'orange' | 'purple';
+type FontFamily = 'modern' | 'elegant' | 'technical' | 'friendly';
 
 const DEFAULT_CONFIG: N8NConfig = {
   profiles: [],
@@ -51,8 +53,10 @@ export default function App() {
   const [searchQuery, setSearchQuery] = useState('');
   const [theme, setTheme] = useState<Theme>('default');
   const [fontSize, setFontSize] = useState<number>(16);
+  const [fontFamily, setFontFamily] = useState<FontFamily>('modern');
   const [isThemeSelectorOpen, setIsThemeSelectorOpen] = useState(false);
   const [isFontSizeSelectorOpen, setIsFontSizeSelectorOpen] = useState(false);
+  const [isFontSelectorOpen, setIsFontSelectorOpen] = useState(false);
   const [headerView, setHeaderView] = useState<'agent' | 'action'>('agent');
   const [isAgentDropdownOpen, setIsAgentDropdownOpen] = useState(false);
   const [isActionDropdownOpen, setIsActionDropdownOpen] = useState(false);
@@ -77,6 +81,12 @@ export default function App() {
     } else {
       document.documentElement.style.setProperty('--chat-font-size', '16px');
     }
+
+    const savedFontFamily = localStorage.getItem(STORAGE_KEY_FONT_FAMILY) as FontFamily;
+    if (savedFontFamily) {
+      setFontFamily(savedFontFamily);
+      document.documentElement.style.setProperty('--font-current', `var(--font-${savedFontFamily})`);
+    }
   }, []);
 
   const handleFontSizeChange = (size: number) => {
@@ -84,6 +94,12 @@ export default function App() {
     setFontSize(newSize);
     localStorage.setItem(STORAGE_KEY_FONT_SIZE, newSize.toString());
     document.documentElement.style.setProperty('--chat-font-size', `${newSize}px`);
+  };
+
+  const handleFontChange = (font: FontFamily) => {
+    setFontFamily(font);
+    localStorage.setItem(STORAGE_KEY_FONT_FAMILY, font);
+    document.documentElement.style.setProperty('--font-current', `var(--font-${font})`);
   };
 
   const handleThemeChange = (newTheme: Theme) => {
@@ -104,14 +120,13 @@ export default function App() {
       if (themeRef.current && !themeRef.current.contains(event.target as Node)) {
         setIsThemeSelectorOpen(false);
       }
-      if (isFontSizeSelectorOpen) {
-        // We handle font size selector closing via the same logic if we wrap it in a ref or just close it when clicking outside
-        // For simplicity, let's just close it if clicking outside the top nav area or add a specific ref
+      if (isFontSizeSelectorOpen || isFontSelectorOpen) {
         setIsFontSizeSelectorOpen(false);
+        setIsFontSelectorOpen(false);
       }
     };
 
-    if (isMenuOpen || isThemeSelectorOpen || isFontSizeSelectorOpen) {
+    if (isMenuOpen || isThemeSelectorOpen || isFontSizeSelectorOpen || isFontSelectorOpen) {
       document.addEventListener('mousedown', handleClickOutside);
     } else {
       document.removeEventListener('mousedown', handleClickOutside);
@@ -120,7 +135,7 @@ export default function App() {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [isMenuOpen, isThemeSelectorOpen]);
+  }, [isMenuOpen, isThemeSelectorOpen, isFontSizeSelectorOpen, isFontSelectorOpen]);
 
   useEffect(() => {
     const savedConfig = localStorage.getItem(STORAGE_KEY_CONFIG);
@@ -151,9 +166,7 @@ export default function App() {
     if (savedSessions) {
       const parsed = JSON.parse(savedSessions);
       setSessions(parsed);
-      if (parsed.length > 0) {
-        setCurrentSessionId(parsed[0].id);
-      }
+      // Removed automatic currentSessionId setting here as the activeProfileId logic will handle it
     } else {
       const firstProfileId = initialConfig.activeProfileId || (initialConfig.profiles.length > 0 ? initialConfig.profiles[0].id : 'default');
       handleNewChat(firstProfileId);
@@ -187,7 +200,14 @@ export default function App() {
   };
 
   const currentSession = sessions.find(s => s.id === currentSessionId);
-  const activeProfile = config.profiles.find(p => p.id === (currentSession?.profileId || config.activeProfileId));
+  const activeProfile = config.profiles.find(p => p.id === config.activeProfileId);
+
+  useEffect(() => {
+    if (!config.activeProfileId) return;
+    
+    // Always start a new chat when switching agents for a fresh experience
+    handleNewChat(config.activeProfileId);
+  }, [config.activeProfileId]);
 
   const handleNewChat = (profileId?: string) => {
     const targetProfileId = profileId || config.activeProfileId || (config.profiles.length > 0 ? config.profiles[0].id : 'default');
@@ -258,31 +278,85 @@ export default function App() {
 
     setIsLoading(true);
 
-    try {
-      const response = await sendToN8N(content, currentSession?.messages || [], activeProfile);
-      
-      const assistantMessage: Message = {
-        id: crypto.randomUUID(),
-        role: 'assistant',
-        content: response,
-        timestamp: Date.now(),
-      };
+    // Prepare an empty assistant message to be filled by the stream
+    const assistantMessageId = crypto.randomUUID();
+    const assistantMessage: Message = {
+      id: assistantMessageId,
+      role: 'assistant',
+      content: '',
+      timestamp: Date.now(),
+    };
 
-      setSessions(prev => prev.map(s => {
-        if (s.id === currentSessionId) {
-          return {
-            ...s,
-            messages: [...s.messages, assistantMessage],
-            updatedAt: Date.now(),
-          };
+    try {
+      let firstChunk = true;
+      const response = await sendToN8N(
+        content, 
+        currentSession?.messages || [], 
+        activeProfile, 
+        currentSessionId,
+        (currentFullText) => {
+          if (firstChunk) {
+            setIsLoading(false);
+            setSessions(prev => prev.map(s => {
+              if (s.id === currentSessionId) {
+                return {
+                  ...s,
+                  messages: [...s.messages, assistantMessage],
+                  updatedAt: Date.now(),
+                };
+              }
+              return s;
+            }));
+            firstChunk = false;
+          }
+
+          setSessions(prev => prev.map(s => {
+            if (s.id === currentSessionId) {
+              return {
+                ...s,
+                messages: s.messages.map(m => 
+                  m.id === assistantMessageId ? { ...m, content: currentFullText } : m
+                ),
+                updatedAt: Date.now(),
+              };
+            }
+            return s;
+          }));
         }
-        return s;
-      }));
+      );
+      
+      // If it wasn't a stream (one-shot response), ensure the final message is set
+      if (firstChunk) {
+        setIsLoading(false);
+        setSessions(prev => prev.map(s => {
+          if (s.id === currentSessionId) {
+            return {
+              ...s,
+              messages: [...s.messages, { ...assistantMessage, content: response }],
+              updatedAt: Date.now(),
+            };
+          }
+          return s;
+        }));
+      } else {
+        // Just make sure the final text matches precisely (in case extractMessageFromData changed it)
+        setSessions(prev => prev.map(s => {
+          if (s.id === currentSessionId) {
+            return {
+              ...s,
+              messages: s.messages.map(m => 
+                m.id === assistantMessageId ? { ...m, content: response } : m
+              ),
+              updatedAt: Date.now(),
+            };
+          }
+          return s;
+        }));
+      }
     } catch (error: any) {
+      setIsLoading(false);
       toast.error(error.message || 'Failed to connect to n8n');
       console.error(error);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -300,7 +374,9 @@ export default function App() {
     window.location.reload();
   };
 
-  const filteredSessions = sessions.filter(s => s.title.toLowerCase().includes(searchQuery.toLowerCase()));
+  const filteredSessions = sessions
+    .filter(s => s.profileId === config.activeProfileId)
+    .filter(s => s.title.toLowerCase().includes(searchQuery.toLowerCase()));
 
   return (
     <TooltipProvider>
@@ -308,7 +384,7 @@ export default function App() {
         <Toaster position="top-center" richColors />
         
         {/* Top Right Navigation */}
-        <div className="absolute top-4 right-4 md:top-6 md:right-8 z-20 flex items-center h-10 gap-3 md:gap-6 text-sm font-medium text-gray-500">
+        <div className="absolute top-2 right-4 md:top-3 md:right-8 z-20 flex items-center h-10 gap-3 md:gap-6 text-sm font-medium text-gray-500">
           <div ref={themeRef} className="flex items-center gap-2 md:gap-3">
             <AnimatePresence>
               {isThemeSelectorOpen && (
@@ -348,7 +424,7 @@ export default function App() {
               )} 
               title="Đổi màu nền"
             >
-              <Palette size={18} />
+              <Palette size={18} strokeWidth={1.2} />
             </button>
           </div>
 
@@ -379,23 +455,73 @@ export default function App() {
             </AnimatePresence>
             
             <button 
-              onClick={() => setIsFontSizeSelectorOpen(!isFontSizeSelectorOpen)}
+              onClick={() => {
+                setIsFontSizeSelectorOpen(!isFontSizeSelectorOpen);
+                setIsFontSelectorOpen(false);
+              }}
               className={cn(
                 "hover:text-gray-800 transition-colors flex items-center gap-2 p-1.5",
                 isFontSizeSelectorOpen && "text-brand"
               )} 
               title="Cỡ chữ"
             >
-              <Type size={18} />
+              <Type size={18} strokeWidth={1.2} />
+            </button>
+          </div>
+
+          <div className="flex items-center gap-2 md:gap-3">
+            <AnimatePresence>
+              {isFontSelectorOpen && (
+                <motion.div
+                  initial={{ opacity: 0, x: 20, width: 0 }}
+                  animate={{ opacity: 1, x: 0, width: 'auto' }}
+                  exit={{ opacity: 0, x: 20, width: 0 }}
+                  className="flex items-center gap-2 overflow-hidden px-1"
+                >
+                  {[
+                    { id: 'modern', label: 'Mod', font: 'var(--font-modern)' },
+                    { id: 'elegant', label: 'Ele', font: 'var(--font-elegant)' },
+                    { id: 'technical', label: 'Tec', font: 'var(--font-technical)' },
+                    { id: 'friendly', label: 'Sof', font: 'var(--font-friendly)' }
+                  ].map((f) => (
+                    <button
+                      key={f.id}
+                      onClick={() => handleFontChange(f.id as FontFamily)}
+                      className={cn(
+                        "px-2 py-1 rounded-md text-[10px] uppercase tracking-tighter transition-all border",
+                        fontFamily === f.id ? "bg-brand text-white border-transparent" : "bg-surface hover:bg-surface-hover border-border text-text-muted"
+                      )}
+                      style={{ fontFamily: f.font }}
+                    >
+                      {f.label}
+                    </button>
+                  ))}
+                </motion.div>
+              )}
+            </AnimatePresence>
+            
+            <button 
+              onClick={() => {
+                setIsFontSelectorOpen(!isFontSelectorOpen);
+                setIsFontSizeSelectorOpen(false);
+              }}
+              className={cn(
+                "hover:text-gray-800 transition-colors flex items-center gap-2 p-1.5",
+                isFontSelectorOpen && "text-brand"
+              )} 
+              title="Phông chữ"
+            >
+              <CaseSensitive size={20} strokeWidth={1.2} />
             </button>
           </div>
 
           <Popover>
-            <PopoverTrigger asChild>
-              <button className="hover:text-gray-800 transition-colors flex items-center gap-2 p-1.5 cursor-pointer" title="Mời Cafe">
-                <Coffee size={18} />
-                <span className="hidden sm:inline">Mời Cafe</span>
-              </button>
+            <PopoverTrigger 
+              className="hover:text-gray-800 transition-colors flex items-center gap-2 p-1.5 cursor-pointer outline-none" 
+              title="Mời Cafe"
+            >
+              <Coffee size={18} strokeWidth={1.2} />
+              <span className="hidden sm:inline">Mời Cafe</span>
             </PopoverTrigger>
             <PopoverContent side="bottom" align="end" sideOffset={12} className="w-64">
               <CoffeePopover />
@@ -403,14 +529,12 @@ export default function App() {
           </Popover>
 
           <Popover>
-            <PopoverTrigger asChild>
-              <button 
-                className="hover:text-brand transition-colors flex items-center gap-2 p-1.5 cursor-pointer"
-                title="Thông tin bảo mật"
-              >
-                <Info size={18} />
-                <span className="hidden sm:inline">Info</span>
-              </button>
+            <PopoverTrigger 
+              className="hover:text-brand transition-colors flex items-center gap-2 p-1.5 cursor-pointer outline-none"
+              title="Thông tin bảo mật"
+            >
+              <Info size={18} strokeWidth={1.2} />
+              <span className="hidden sm:inline">Info</span>
             </PopoverTrigger>
             <PopoverContent side="bottom" align="end" sideOffset={12} className="w-80">
               <InfoPopover 
@@ -422,7 +546,7 @@ export default function App() {
         </div>
 
         {/* Top Left Floating Menu */}
-        <div ref={menuRef} className="absolute top-4 left-4 md:top-6 md:left-6 z-40 flex flex-col gap-4 w-[calc(100%-2rem)] md:w-80 pointer-events-none">
+        <div ref={menuRef} className="absolute top-2 left-4 md:top-3 md:left-6 z-40 flex flex-col gap-4 w-[calc(100%-2rem)] md:w-80 pointer-events-none">
           {/* Logo & Agent Selector Row */}
           <div className="flex items-center gap-2 md:gap-4 pointer-events-auto">
             <button
@@ -454,16 +578,13 @@ export default function App() {
                   {config.profiles.length > 0 && (
                     <div className="flex items-center gap-2">
                       <DropdownMenu open={isAgentDropdownOpen} onOpenChange={setIsAgentDropdownOpen}>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            className="h-10 px-4 gap-2 border-none shadow-none focus:ring-0 bg-brand-light/20 hover:bg-brand-light/30 rounded-xl min-w-[120px] max-w-[200px] flex justify-between items-center font-medium group transition-all"
-                          >
-                            <span className="truncate">
-                              {config.profiles.find(p => p.id === (currentSession?.profileId || config.activeProfileId))?.name || "Select Agent"}
-                            </span>
-                            <ChevronDown size={14} className={cn("opacity-50 transition-transform duration-300", isAgentDropdownOpen && "rotate-180")} />
-                          </Button>
+                        <DropdownMenuTrigger
+                          className="h-10 px-4 gap-2 border-none shadow-none focus:ring-0 bg-brand-light/20 hover:bg-brand-light/30 rounded-xl min-w-[120px] max-w-[200px] flex justify-between items-center font-medium group transition-all outline-none"
+                        >
+                          <span className="truncate">
+                            {config.profiles.find(p => p.id === config.activeProfileId)?.name || "Select Agent"}
+                          </span>
+                          <ChevronDown size={14} strokeWidth={1.2} className={cn("opacity-50 transition-transform duration-300", isAgentDropdownOpen && "rotate-180")} />
                         </DropdownMenuTrigger>
                         <DropdownMenuContent 
                           align="start" 
@@ -475,16 +596,12 @@ export default function App() {
                             <DropdownMenuItem
                               key={p.id}
                               onClick={() => {
-                                if (currentSession) {
-                                  setSessions(prev => prev.map(s => 
-                                    s.id === currentSessionId ? { ...s, profileId: p.id } : s
-                                  ));
-                                }
+                                setConfig(prev => ({ ...prev, activeProfileId: p.id }));
                                 setIsAgentDropdownOpen(false);
                               }}
                               className={cn(
                                 "cursor-pointer px-4 py-2.5 text-xs transition-colors text-gray-600 first:rounded-t-xl last:rounded-b-xl",
-                                (currentSession?.profileId || config.activeProfileId) === p.id 
+                                (config.activeProfileId) === p.id 
                                   ? "bg-gray-50 font-medium text-black" 
                                   : "hover:bg-gray-50/50 hover:text-black"
                               )}
@@ -496,13 +613,11 @@ export default function App() {
                       </DropdownMenu>
 
                       <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button 
-                            onClick={() => handleNewChat()}
-                            className="h-10 w-10 p-0 bg-brand-light/20 hover:bg-brand-light/30 text-brand border-none shadow-none rounded-xl flex-shrink-0"
-                          >
-                            <Plus size={18} />
-                          </Button>
+                        <TooltipTrigger
+                          onClick={() => handleNewChat()}
+                          className="h-10 w-10 p-0 bg-brand-light/20 hover:bg-brand-light/30 text-brand border-none shadow-none rounded-xl flex-shrink-0 flex items-center justify-center outline-none cursor-pointer"
+                        >
+                          <Plus size={18} strokeWidth={1.2} />
                         </TooltipTrigger>
                         <TooltipContent side="bottom" sideOffset={10}>
                           Tạo chat mới
@@ -525,7 +640,7 @@ export default function App() {
                       setHeaderView('agent');
                     }}
                   >
-                    <Plus size={18} />
+                    <Plus size={18} strokeWidth={1.2} />
                     <span>New Agent</span>
                   </Button>
                 </motion.div>
@@ -545,7 +660,7 @@ export default function App() {
               >
                 {/* Search Bar */}
                 <div className="relative">
-                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} strokeWidth={1.2} />
                   <input 
                     type="text" 
                     placeholder="Search..." 
@@ -601,7 +716,7 @@ export default function App() {
                             className="absolute top-3 right-3 md:top-4 md:right-4 p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg md:opacity-0 group-hover:opacity-100 transition-all z-10"
                             title="Delete chat"
                           >
-                            <Trash2 size={16} />
+                            <Trash2 size={16} strokeWidth={1.2} />
                           </button>
                         </div>
                       ))
@@ -620,7 +735,7 @@ export default function App() {
           <div 
             ref={scrollAreaRef}
             onScroll={handleScroll}
-            className="flex-grow overflow-y-auto pt-20 md:pt-24"
+            className="flex-grow overflow-y-auto pt-16 md:pt-20"
           >
             {currentSession?.messages.length === 0 ? (
               <div className="min-h-full flex flex-col">
@@ -681,6 +796,33 @@ export default function App() {
                         />
                       </motion.div>
                     ))}
+
+                    {isLoading && (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="py-6 px-4"
+                      >
+                        <div className="flex gap-1.5 items-end h-4">
+                          {[0, 1, 2].map((i) => (
+                            <motion.div
+                              key={i}
+                              animate={{ 
+                                y: [0, -6, 0],
+                                opacity: [0.3, 1, 0.3] 
+                              }}
+                              transition={{ 
+                                repeat: Infinity, 
+                                duration: 0.8, 
+                                delay: i * 0.15,
+                                ease: "easeInOut"
+                              }}
+                              className="w-1.5 h-1.5 rounded-full bg-brand"
+                            />
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
                   </AnimatePresence>
                   <div ref={messagesEndRef} className="h-4" />
                 </div>
@@ -698,7 +840,7 @@ export default function App() {
                 onClick={scrollToBottom}
                 className="absolute bottom-32 right-8 md:right-12 p-3 bg-surface hover:bg-surface-hover border border-border shadow-lg rounded-full text-text-muted hover:text-text transition-all z-30"
               >
-                <ChevronDown size={20} />
+                <ChevronDown size={20} strokeWidth={1.2} />
               </motion.button>
             )}
           </AnimatePresence>

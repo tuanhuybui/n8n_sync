@@ -37,7 +37,9 @@ const extractMessageFromData = (data: any): string => {
 export const sendToN8N = async (
   message: string,
   history: Message[],
-  profile: WebhookProfile
+  profile: WebhookProfile,
+  sessionId: string,
+  onChunk?: (chunk: string) => void
 ): Promise<string> => {
   if (!profile.webhookUrl) {
     throw new Error('Webhook URL is not configured');
@@ -45,6 +47,12 @@ export const sendToN8N = async (
 
   try {
     let response: Response;
+    const body: any = {
+      sessionId,
+      message,
+      history: history.map(m => ({ role: m.role, content: m.content })),
+      timestamp: new Date().toISOString(),
+    };
 
     if (profile.useProxy === false) {
       // Direct connection (Maximum Privacy)
@@ -61,11 +69,7 @@ export const sendToN8N = async (
       response = await fetch(profile.webhookUrl, {
         method: 'POST',
         headers,
-        body: JSON.stringify({
-          message,
-          history: history.map(m => ({ role: m.role, content: m.content })),
-          timestamp: new Date().toISOString(),
-        }),
+        body: JSON.stringify(body),
       });
     } else {
       // Proxy connection (Default)
@@ -76,13 +80,13 @@ export const sendToN8N = async (
         },
         body: JSON.stringify({
           ...profile,
-          message,
-          history,
+          ...body,
         }),
       });
     }
 
     if (!response.ok) {
+      // ... same error handling as before ...
       if (response.status === 404) {
         throw new Error('n8n Webhook not found (404). Please check if your URL is correct and the workflow is ACTIVE.');
       }
@@ -98,14 +102,71 @@ export const sendToN8N = async (
       }
     }
 
-    const text = await response.text();
-    let data;
+    // Handle Streaming
+    if (!response.body) {
+      throw new Error('Response body is empty');
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let fullText = '';
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      const chunk = decoder.decode(value, { stream: true });
+      buffer += chunk;
+      
+      // Split buffer by lines
+      const lines = buffer.split('\n');
+      // Keep the last partial line in the buffer
+      buffer = lines.pop() || '';
+
+      for (const line of lines) {
+        if (!line.trim()) continue;
+        
+        try {
+          // Try to parse as n8n streaming JSON
+          const parsed = JSON.parse(line);
+          if (parsed.type === 'item' && typeof parsed.content === 'string') {
+            fullText += parsed.content;
+            if (onChunk) onChunk(fullText);
+          } else if (parsed.type === 'end') {
+            // End of stream signal
+          }
+        } catch {
+          // If a line is not valid JSON, it might be raw text streaming
+          // This handles cases where n8n just streams raw text
+          if (!line.trim().startsWith('{')) {
+            fullText += line + '\n';
+            if (onChunk) onChunk(fullText);
+          }
+        }
+      }
+    }
+
+    // Process any remaining data in the buffer
+    if (buffer.trim()) {
+      try {
+        const parsed = JSON.parse(buffer);
+        if (parsed.type === 'item' && typeof parsed.content === 'string') {
+          fullText += parsed.content;
+        }
+      } catch {
+        if (!buffer.trim().startsWith('{')) {
+          fullText += buffer;
+        }
+      }
+    }
+
+    // After stream completes, try parsing the whole thing as one JSON block (standard Webhook case)
     try {
-      data = JSON.parse(text);
+      const data = JSON.parse(fullText);
       return extractMessageFromData(data);
     } catch {
-      // If not JSON, return the raw text
-      return text;
+      return fullText;
     }
   } catch (error) {
     console.error('Error sending to n8n:', error);

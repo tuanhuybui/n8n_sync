@@ -194,7 +194,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       <button 
                         className={cn(
                           "text-sm transition-colors",
-                          currentProfile.useProxy === false ? "text-brand font-medium underline underline-offset-4" : "text-text-muted"
+                          currentProfile.useProxy !== true ? "text-brand font-medium underline underline-offset-4" : "text-text-muted"
                         )}
                         onClick={() => setCurrentProfile({ ...currentProfile, useProxy: false })}
                       >
@@ -203,7 +203,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       <button 
                         className={cn(
                           "text-sm transition-colors",
-                          currentProfile.useProxy !== false ? "text-brand font-medium underline underline-offset-4" : "text-text-muted"
+                          currentProfile.useProxy === true ? "text-brand font-medium underline underline-offset-4" : "text-text-muted"
                         )}
                         onClick={() => setCurrentProfile({ ...currentProfile, useProxy: true })}
                       >

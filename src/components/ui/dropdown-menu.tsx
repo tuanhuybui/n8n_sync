@@ -16,9 +16,14 @@ const DropdownMenuSub = MenuPrimitive.Root // Menu can be nested
 const DropdownMenuContent = React.forwardRef<
   HTMLDivElement,
   MenuPrimitive.Popup.Props & Pick<MenuPrimitive.Positioner.Props, "side" | "sideOffset" | "align" | "alignOffset">
->(({ className, sideOffset = 4, ...props }, ref) => (
+>(({ className, sideOffset = 4, side = "bottom", align = "start", alignOffset = 0, ...props }, ref) => (
   <DropdownMenuPortal>
-    <MenuPrimitive.Positioner sideOffset={sideOffset}>
+    <MenuPrimitive.Positioner 
+      sideOffset={sideOffset} 
+      side={side} 
+      align={align} 
+      alignOffset={alignOffset}
+    >
       <MenuPrimitive.Popup
         ref={ref}
         data-slot="dropdown-menu-content"
