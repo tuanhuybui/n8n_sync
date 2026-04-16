@@ -103,21 +103,27 @@
   font-size: var(--chat-font-size, 16px);
 }
 .prose-custom p {
-  @apply text-inherit leading-relaxed font-light;
+  @apply text-inherit leading-[1.7] font-light mb-4;
   font-size: inherit;
 }
-.prose-custom p:not(:last-child) {
-  @apply mb-4;
+.prose-custom p:last-child {
+  @apply mb-0;
 }
-.prose-custom h1, .prose-custom h2, .prose-custom h3 {
-  @apply font-sans italic font-normal text-inherit mt-8 mb-4 opacity-90;
+.prose-custom h1, .prose-custom h2, .prose-custom h3, .prose-custom h4, .prose-custom h5, .prose-custom h6 {
+  @apply font-sans font-medium text-inherit mt-7 mb-3 opacity-95 tracking-normal not-italic;
 }
-.prose-custom h1 { @apply text-4xl; }
-.prose-custom h2 { @apply text-3xl; }
-.prose-custom h3 { @apply text-2xl; }
-.prose-custom ul { @apply list-disc pl-5 mb-4 text-inherit font-light space-y-2 opacity-90; }
-.prose-custom ol { @apply list-decimal pl-5 mb-4 text-inherit font-light space-y-2 opacity-90; }
-.prose-custom li::marker { @apply text-brand opacity-50; }
+.prose-custom h1 { @apply text-2xl; }
+.prose-custom h2 { @apply text-xl; }
+.prose-custom h3 { @apply text-lg; }
+.prose-custom h4, .prose-custom h5, .prose-custom h6 { @apply text-base font-semibold; }
+.prose-custom blockquote { @apply border-l-2 border-brand/50 pl-4 py-1 italic opacity-90 my-4 bg-brand-light/5 rounded-r-lg; }
+.prose-custom strong, .prose-custom b { @apply font-semibold text-text opacity-100; }
+.prose-custom a { @apply text-brand font-medium underline underline-offset-4 hover:opacity-80 transition-opacity; }
+.prose-custom ul { @apply list-disc pl-6 mb-5 text-inherit font-light space-y-2 opacity-90; }
+.prose-custom ol { @apply list-decimal pl-6 mb-5 text-inherit font-light space-y-2 opacity-90; }
+.prose-custom li > p { @apply my-1 inline-block; }
+.prose-custom li > ul, .prose-custom li > ol { @apply mt-2 mb-0; }
+.prose-custom li::marker { @apply text-text opacity-40; }
 .prose-custom table {
   @apply w-full border-collapse mb-6 text-sm text-inherit;
 }
