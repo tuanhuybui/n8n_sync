@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Zap, History, Sparkles, ArrowRight } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
+import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 export const RightSidebar: React.FC = () => {
