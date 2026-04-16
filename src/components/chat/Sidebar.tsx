@@ -1,9 +1,9 @@
 import React from 'react';
 import { ChatSession } from '../../types';
 import { Settings, Search } from 'lucide-react';
-import { Button } from '../ui/button';
-import { ScrollArea } from '../ui/scroll-area';
-import { cn } from '../../lib/utils';
+import { Button } from '@/components/ui/Button';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { cn } from '@/lib/utils';
 
 interface SidebarProps {
   sessions: ChatSession[];

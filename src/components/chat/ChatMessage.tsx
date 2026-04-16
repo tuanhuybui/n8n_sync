@@ -7,7 +7,7 @@ import rehypeHighlight from 'rehype-highlight';
 import 'katex/dist/katex.min.css';
 import 'highlight.js/styles/github.css'; // Changed to light theme highlight
 import { Message } from '../../types';
-import { cn } from '../../lib/utils';
+import { cn } from '@/lib/utils';
 import { Copy, Check } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { toast } from 'sonner';

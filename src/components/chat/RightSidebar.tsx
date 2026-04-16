@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Zap, History, Sparkles, ArrowRight } from 'lucide-react';
-import { Button } from '../ui/button';
-import { cn } from '../../lib/utils';
+import { Button } from '@/components/ui/Button';
+import { cn } from '@/lib/utils';
 
 export const RightSidebar: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'past' | 'future'>('future');

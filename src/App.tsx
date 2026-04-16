@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/Button';
 import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { motion, AnimatePresence } from 'motion/react';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { cn } from './lib/utils';
+import { cn } from '@/lib/utils';
 import {
   Select,
   SelectContent,
