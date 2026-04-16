@@ -65,6 +65,8 @@ export default function App() {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const themeRef = useRef<HTMLDivElement>(null);
+  const fontSizeRef = useRef<HTMLDivElement>(null);
+  const fontFamilyRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const savedTheme = localStorage.getItem(STORAGE_KEY_THEME) as Theme;
@@ -120,8 +122,10 @@ export default function App() {
       if (themeRef.current && !themeRef.current.contains(event.target as Node)) {
         setIsThemeSelectorOpen(false);
       }
-      if (isFontSizeSelectorOpen || isFontSelectorOpen) {
+      if (fontSizeRef.current && !fontSizeRef.current.contains(event.target as Node)) {
         setIsFontSizeSelectorOpen(false);
+      }
+      if (fontFamilyRef.current && !fontFamilyRef.current.contains(event.target as Node)) {
         setIsFontSelectorOpen(false);
       }
     };
@@ -428,7 +432,7 @@ export default function App() {
             </button>
           </div>
 
-          <div className="flex items-center gap-2 md:gap-3">
+          <div ref={fontSizeRef} className="flex items-center gap-2 md:gap-3">
             <AnimatePresence>
               {isFontSizeSelectorOpen && (
                 <motion.div
@@ -469,7 +473,7 @@ export default function App() {
             </button>
           </div>
 
-          <div className="flex items-center gap-2 md:gap-3">
+          <div ref={fontFamilyRef} className="flex items-center gap-2 md:gap-3">
             <AnimatePresence>
               {isFontSelectorOpen && (
                 <motion.div
