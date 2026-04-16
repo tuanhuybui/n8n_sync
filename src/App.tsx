@@ -6,11 +6,11 @@ import { InfoModal } from './components/chat/InfoModal';
 import { ChatSession, Message, N8NConfig } from './types';
 import { sendToN8N } from './services/n8nService';
 import { Toaster, toast } from 'sonner';
-import { Plus, Search, Settings, Coffee, Trash2, Palette, Info } from 'lucide-react';
-import { Button } from './components/ui/button';
-import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from './components/ui/tooltip';
+import { Plus, Search, Settings, Coffee, Trash2, Palette, Info, Type } from 'lucide-react';
+import { Button } from '@/components/ui/Button';
+import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { motion, AnimatePresence } from 'motion/react';
-import { ScrollArea } from './components/ui/scroll-area';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from './lib/utils';
 import {
   Select,
@@ -18,17 +18,18 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from './components/ui/select';
+} from '@/components/ui/select';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from './components/ui/dropdown-menu';
+} from '@/components/ui/dropdown-menu';
 
 const STORAGE_KEY_SESSIONS = 'n8n_chat_sessions';
 const STORAGE_KEY_CONFIG = 'n8n_chat_config';
 const STORAGE_KEY_THEME = 'n8n_chat_theme';
+const STORAGE_KEY_FONT_SIZE = 'n8n_chat_font_size';
 
 type Theme = 'default' | 'white' | 'graphite' | 'orange' | 'purple';
 
@@ -47,7 +48,9 @@ export default function App() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [theme, setTheme] = useState<Theme>('default');
+  const [fontSize, setFontSize] = useState<number>(16);
   const [isThemeSelectorOpen, setIsThemeSelectorOpen] = useState(false);
+  const [isFontSizeSelectorOpen, setIsFontSizeSelectorOpen] = useState(false);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -59,7 +62,23 @@ export default function App() {
       setTheme(savedTheme);
       document.documentElement.setAttribute('data-theme', savedTheme);
     }
+
+    const savedFontSize = localStorage.getItem(STORAGE_KEY_FONT_SIZE);
+    if (savedFontSize) {
+      const size = parseInt(savedFontSize);
+      setFontSize(size);
+      document.documentElement.style.setProperty('--chat-font-size', `${size}px`);
+    } else {
+      document.documentElement.style.setProperty('--chat-font-size', '16px');
+    }
   }, []);
+
+  const handleFontSizeChange = (size: number) => {
+    const newSize = Math.max(12, Math.min(28, size));
+    setFontSize(newSize);
+    localStorage.setItem(STORAGE_KEY_FONT_SIZE, newSize.toString());
+    document.documentElement.style.setProperty('--chat-font-size', `${newSize}px`);
+  };
 
   const handleThemeChange = (newTheme: Theme) => {
     setTheme(newTheme);
@@ -79,9 +98,14 @@ export default function App() {
       if (themeRef.current && !themeRef.current.contains(event.target as Node)) {
         setIsThemeSelectorOpen(false);
       }
+      if (isFontSizeSelectorOpen) {
+        // We handle font size selector closing via the same logic if we wrap it in a ref or just close it when clicking outside
+        // For simplicity, let's just close it if clicking outside the top nav area or add a specific ref
+        setIsFontSizeSelectorOpen(false);
+      }
     };
 
-    if (isMenuOpen || isThemeSelectorOpen) {
+    if (isMenuOpen || isThemeSelectorOpen || isFontSizeSelectorOpen) {
       document.addEventListener('mousedown', handleClickOutside);
     } else {
       document.removeEventListener('mousedown', handleClickOutside);
@@ -302,6 +326,44 @@ export default function App() {
               title="Đổi màu nền"
             >
               <Palette size={18} />
+            </button>
+          </div>
+
+          <div className="flex items-center gap-2 md:gap-3">
+            <AnimatePresence>
+              {isFontSizeSelectorOpen && (
+                <motion.div
+                  initial={{ opacity: 0, x: 20, width: 0 }}
+                  animate={{ opacity: 1, x: 0, width: 'auto' }}
+                  exit={{ opacity: 0, x: 20, width: 0 }}
+                  className="flex items-center gap-2 overflow-hidden pr-2"
+                >
+                  <button 
+                    onClick={() => handleFontSizeChange(fontSize - 2)}
+                    className="w-6 h-6 flex items-center justify-center rounded-full bg-surface hover:bg-surface-hover border border-border text-text text-xs"
+                  >
+                    -
+                  </button>
+                  <span className="text-xs font-mono w-4 text-center">{fontSize}</span>
+                  <button 
+                    onClick={() => handleFontSizeChange(fontSize + 2)}
+                    className="w-6 h-6 flex items-center justify-center rounded-full bg-surface hover:bg-surface-hover border border-border text-text text-xs"
+                  >
+                    +
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+            
+            <button 
+              onClick={() => setIsFontSizeSelectorOpen(!isFontSizeSelectorOpen)}
+              className={cn(
+                "hover:text-gray-800 transition-colors flex items-center gap-2 p-1.5",
+                isFontSizeSelectorOpen && "text-brand"
+              )} 
+              title="Cỡ chữ"
+            >
+              <Type size={18} />
             </button>
           </div>
 

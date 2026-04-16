@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import TextareaAutosize from 'react-textarea-autosize';
 import { ArrowUp } from 'lucide-react';
-import { Button } from '../ui/button';
+import { Button } from '@/components/ui/Button';
 import { cn } from '../../lib/utils';
 
 interface ChatInputProps {

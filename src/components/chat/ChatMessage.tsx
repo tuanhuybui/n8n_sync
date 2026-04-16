@@ -9,7 +9,7 @@ import 'highlight.js/styles/github.css'; // Changed to light theme highlight
 import { Message } from '../../types';
 import { cn } from '../../lib/utils';
 import { Copy, Check } from 'lucide-react';
-import { Button } from '../ui/button';
+import { Button } from '@/components/ui/Button';
 import { toast } from 'sonner';
 
 interface ChatMessageProps {
@@ -38,7 +38,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, agentName = '
         </div>
 
         <div className={cn(
-          "prose-custom text-sm md:text-base",
+          "prose-custom",
           isUser ? "bg-brand-light/20 p-3 md:p-4 rounded-2xl rounded-tr-none text-right inline-block" : "w-full"
         )}>
           <ReactMarkdown

@@ -87,9 +87,11 @@
 
 .prose-custom {
   @apply max-w-none;
+  font-size: var(--chat-font-size, 16px);
 }
 .prose-custom p {
   @apply text-inherit leading-relaxed font-light;
+  font-size: inherit;
 }
 .prose-custom p:not(:last-child) {
   @apply mb-4;
