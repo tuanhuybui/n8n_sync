@@ -11,8 +11,8 @@
   --color-text: var(--text-color, #1a1a1a);
   --color-text-muted: var(--text-muted-color, #666666);
   --color-border: var(--border-color, #e5e5e5);
-  --color-brand: #6750A4; /* Pona Purple */
-  --color-brand-light: #E8DEF8;
+  --color-brand: var(--brand-color, #6750A4);
+  --color-brand-light: var(--brand-light-color, #E8DEF8);
   
   /* Shadcn compatibility */
   --color-background: var(--bg-color, #f3f3f3);
@@ -34,6 +34,8 @@
   --text-color: #1a1a1a;
   --text-muted-color: #666666;
   --border-color: #eeeeee;
+  --brand-color: #6750A4;
+  --brand-light-color: #E8DEF8;
 }
 
 [data-theme="graphite"] {
@@ -43,6 +45,8 @@
   --text-color: #ffffff;
   --text-muted-color: #a3a3a3;
   --border-color: #404040;
+  --brand-color: #a78bfa; /* Lighter purple for dark theme */
+  --brand-light-color: #2e1065;
 }
 
 [data-theme="orange"] {
@@ -52,6 +56,8 @@
   --text-color: #4a3728;
   --text-muted-color: #8c735e;
   --border-color: #f0e0d0;
+  --brand-color: #92400e; /* Deep orange/brown */
+  --brand-light-color: #fef3c7;
 }
 
 [data-theme="purple"] {
@@ -61,6 +67,8 @@
   --text-color: #f3effa;
   --text-muted-color: #b3a1d1;
   --border-color: #3d2d5c;
+  --brand-color: #c084fc;
+  --brand-light-color: #4c1d95;
 }
 
 @layer base {

@@ -48,6 +48,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
       name: 'New Agent',
       webhookUrl: '',
       authType: 'none',
+      useProxy: false,
     };
     setProfiles([...profiles, newProfile]);
     setEditingProfileId(newProfile.id);
@@ -88,8 +89,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[550px] max-h-[85vh] flex flex-col p-0 overflow-hidden bg-white text-black border-none shadow-none">
-        <DialogHeader className="px-6 py-8 border-b border-gray-100">
+      <DialogContent className="sm:max-w-[550px] max-h-[85vh] flex flex-col p-0 overflow-hidden bg-surface text-text border-border shadow-none">
+        <DialogHeader className="px-6 py-8 border-b border-border">
           <div className="flex items-center justify-between">
             <div>
               <DialogTitle className="text-xl font-medium tracking-tight">Agent Configuration</DialogTitle>
@@ -98,9 +99,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
             {!editingProfileId && (
               <button 
                 onClick={handleAddProfile} 
-                className="text-sm font-medium text-black hover:opacity-60 transition-opacity"
+                className="text-sm font-medium text-brand hover:opacity-60 transition-opacity flex items-center gap-2"
               >
-                Add Agent
+                <Plus size={16} />
+                <span>Add Agent</span>
               </button>
             )}
           </div>
@@ -119,24 +121,24 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   {profiles.map((profile) => (
                     <div 
                       key={profile.id}
-                      className="group flex items-center justify-between py-4 border-b border-gray-50 last:border-0"
+                      className="group flex items-center justify-between py-4 border-b border-border last:border-0"
                     >
                       <div className="flex flex-col gap-1">
-                        <span className="font-medium text-sm">{profile.name}</span>
+                        <span className="font-medium text-sm text-text">{profile.name}</span>
                         <div className="flex items-center gap-3">
-                          <span className="text-[10px] text-gray-400 uppercase tracking-widest">{profile.authType}</span>
-                          <span className="text-[11px] text-gray-400 truncate max-w-[250px] font-mono">{profile.webhookUrl || 'No URL'}</span>
+                          <span className="text-[10px] text-text-muted uppercase tracking-widest">{profile.authType}</span>
+                          <span className="text-[11px] text-text-muted truncate max-w-[250px] font-mono">{profile.webhookUrl || 'No URL'}</span>
                         </div>
                       </div>
                       <div className="flex gap-4 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button 
-                          className="text-xs font-medium text-gray-400 hover:text-black transition-colors" 
+                          className="text-xs font-medium text-text-muted hover:text-text transition-colors" 
                           onClick={() => handleEditProfile(profile)}
                         >
                           Edit
                         </button>
                         <button 
-                          className="text-xs font-medium text-gray-400 hover:text-red-500 transition-colors" 
+                          className="text-xs font-medium text-text-muted hover:text-red-500 transition-colors" 
                           onClick={() => handleDeleteProfile(profile.id)}
                         >
                           Delete
@@ -150,22 +152,22 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
               <div className="space-y-10 animate-in fade-in slide-in-from-bottom-2 duration-300">
                 <div className="flex items-center gap-4">
                   <button 
-                    className="text-xs text-gray-400 hover:text-black transition-colors" 
+                    className="text-xs text-text-muted hover:text-text transition-colors" 
                     onClick={() => { setEditingProfileId(null); setCurrentProfile({}); }}
                   >
                     Back
                   </button>
-                  <h3 className="text-sm font-medium">Edit Agent</h3>
+                  <h3 className="text-sm font-medium text-text">Edit Agent</h3>
                 </div>
                 
                 <div className="space-y-8">
                   <div className="grid gap-2">
-                    <Label htmlFor="name" className="text-[10px] uppercase font-medium text-gray-400 tracking-widest">Name</Label>
+                    <Label htmlFor="name" className="text-[10px] uppercase font-medium text-text-muted tracking-widest">Name</Label>
                     <input
                       id="name"
                       type="text"
                       placeholder="Agent Name"
-                      className="w-full py-2 border-b border-gray-100 focus:border-black outline-none transition-colors text-sm bg-transparent"
+                      className="w-full py-2 border-b border-border focus:border-brand outline-none transition-colors text-sm bg-transparent text-text"
                       value={currentProfile.name || ''}
                       onChange={(e) => setCurrentProfile({ ...currentProfile, name: e.target.value })}
                     />
@@ -173,13 +175,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
                   <div className="grid gap-2">
                     <div className="flex items-center justify-between">
-                      <Label htmlFor="webhookUrl" className="text-[10px] uppercase font-medium text-gray-400 tracking-widest">Webhook URL</Label>
-                      <span className="text-[9px] text-gray-300 uppercase tracking-tighter">Local only</span>
+                      <Label htmlFor="webhookUrl" className="text-[10px] uppercase font-medium text-text-muted tracking-widest">Webhook URL</Label>
+                      <span className="text-[9px] text-text-muted uppercase tracking-tighter">Local only</span>
                     </div>
                     <input
                       id="webhookUrl"
                       type="text"
-                      className="w-full py-2 border-b border-gray-100 focus:border-black outline-none transition-colors text-sm font-mono bg-transparent"
+                      className="w-full py-2 border-b border-border focus:border-brand outline-none transition-colors text-sm font-mono bg-transparent text-text"
                       placeholder="https://..."
                       value={currentProfile.webhookUrl || ''}
                       onChange={(e) => setCurrentProfile({ ...currentProfile, webhookUrl: e.target.value })}
@@ -187,12 +189,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   </div>
 
                   <div className="grid gap-4">
-                    <Label className="text-[10px] uppercase font-medium text-gray-400 tracking-widest">Connection</Label>
+                    <Label className="text-[10px] uppercase font-medium text-text-muted tracking-widest">Connection</Label>
                     <div className="flex gap-6">
                       <button 
                         className={cn(
                           "text-sm transition-colors",
-                          currentProfile.useProxy === false ? "text-black font-medium underline underline-offset-4" : "text-gray-400"
+                          currentProfile.useProxy === false ? "text-brand font-medium underline underline-offset-4" : "text-text-muted"
                         )}
                         onClick={() => setCurrentProfile({ ...currentProfile, useProxy: false })}
                       >
@@ -201,7 +203,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       <button 
                         className={cn(
                           "text-sm transition-colors",
-                          currentProfile.useProxy !== false ? "text-black font-medium underline underline-offset-4" : "text-gray-400"
+                          currentProfile.useProxy !== false ? "text-brand font-medium underline underline-offset-4" : "text-text-muted"
                         )}
                         onClick={() => setCurrentProfile({ ...currentProfile, useProxy: true })}
                       >
@@ -211,15 +213,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   </div>
                   
                   <div className="grid gap-4">
-                    <Label htmlFor="authType" className="text-[10px] uppercase font-medium text-gray-400 tracking-widest">Authentication</Label>
+                    <Label htmlFor="authType" className="text-[10px] uppercase font-medium text-text-muted tracking-widest">Authentication</Label>
                     <Select
                       value={currentProfile.authType}
                       onValueChange={(value: any) => setCurrentProfile({ ...currentProfile, authType: value })}
                     >
-                      <SelectTrigger id="authType" className="h-auto p-0 border-none shadow-none focus:ring-0 text-sm bg-transparent">
+                      <SelectTrigger id="authType" className="h-auto p-0 border-none shadow-none focus:ring-0 text-sm bg-transparent text-text">
                         <SelectValue placeholder="Select type" />
                       </SelectTrigger>
-                      <SelectContent className="bg-white border border-gray-100 shadow-xl rounded-none">
+                      <SelectContent className="bg-surface border border-border shadow-xl rounded-none">
                         <SelectItem value="none">None</SelectItem>
                         <SelectItem value="header">Custom Header</SelectItem>
                         <SelectItem value="bearer">Bearer Token</SelectItem>
@@ -230,10 +232,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   {currentProfile.authType === 'header' && (
                     <div className="grid grid-cols-2 gap-8 animate-in fade-in slide-in-from-top-1">
                       <div className="grid gap-2">
-                        <Label htmlFor="headerName" className="text-[10px] text-gray-400 uppercase tracking-widest">Key</Label>
+                        <Label htmlFor="headerName" className="text-[10px] text-text-muted uppercase tracking-widest">Key</Label>
                         <input
                           id="headerName"
-                          className="w-full py-2 border-b border-gray-100 focus:border-black outline-none text-sm bg-transparent"
+                          className="w-full py-2 border-b border-border focus:border-brand outline-none text-sm bg-transparent text-text"
                           placeholder="X-API-KEY"
                           value={currentProfile.authHeaderName || ''}
                           onChange={(e) => setCurrentProfile({ ...currentProfile, authHeaderName: e.target.value })}
@@ -241,13 +243,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                       </div>
                       <div className="grid gap-2">
                         <div className="flex items-center justify-between">
-                          <Label htmlFor="headerValue" className="text-[10px] text-gray-400 uppercase tracking-widest">Value</Label>
-                          <span className="text-[9px] text-gray-300 uppercase tracking-tighter">Private</span>
+                          <Label htmlFor="headerValue" className="text-[10px] text-text-muted uppercase tracking-widest">Value</Label>
+                          <span className="text-[9px] text-text-muted uppercase tracking-tighter">Private</span>
                         </div>
                         <input
                           id="headerValue"
                           type="password"
-                          className="w-full py-2 border-b border-gray-100 focus:border-black outline-none text-sm bg-transparent"
+                          className="w-full py-2 border-b border-border focus:border-brand outline-none text-sm bg-transparent text-text"
                           value={currentProfile.authHeaderValue || ''}
                           onChange={(e) => setCurrentProfile({ ...currentProfile, authHeaderValue: e.target.value })}
                         />
@@ -258,13 +260,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                   {currentProfile.authType === 'bearer' && (
                     <div className="grid gap-2 animate-in fade-in slide-in-from-top-1">
                       <div className="flex items-center justify-between">
-                        <Label htmlFor="token" className="text-[10px] text-gray-400 uppercase tracking-widest">Token</Label>
-                        <span className="text-[9px] text-gray-300 uppercase tracking-tighter">Private</span>
+                        <Label htmlFor="token" className="text-[10px] text-text-muted uppercase tracking-widest">Token</Label>
+                        <span className="text-[9px] text-text-muted uppercase tracking-tighter">Private</span>
                       </div>
                       <input
                         id="token"
                         type="password"
-                        className="w-full py-2 border-b border-gray-100 focus:border-black outline-none text-sm bg-transparent"
+                        className="w-full py-2 border-b border-border focus:border-brand outline-none text-sm bg-transparent text-text"
                         placeholder="Bearer token..."
                         value={currentProfile.authToken || ''}
                         onChange={(e) => setCurrentProfile({ ...currentProfile, authToken: e.target.value })}
@@ -274,10 +276,10 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
                 </div>
 
                 <div className="flex gap-8 pt-4">
-                  <button className="text-sm font-medium text-black hover:opacity-60 transition-opacity" onClick={handleSaveProfile}>
+                  <button className="text-sm font-medium text-brand hover:opacity-60 transition-opacity" onClick={handleSaveProfile}>
                     Save Agent
                   </button>
-                  <button className="text-sm font-medium text-gray-400 hover:text-black transition-colors" onClick={() => setEditingProfileId(null)}>
+                  <button className="text-sm font-medium text-text-muted hover:text-text transition-colors" onClick={() => setEditingProfileId(null)}>
                     Cancel
                   </button>
                 </div>
@@ -287,16 +289,16 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
         </div>
 
         {!editingProfileId && (
-          <DialogFooter className="px-6 py-8 border-t border-gray-100 bg-gray-50/30">
+          <DialogFooter className="px-6 py-8 border-t border-border bg-surface-hover/20">
             <div className="flex gap-6 w-full justify-end">
               <button 
-                className="text-sm font-medium text-gray-400 hover:text-black transition-colors" 
+                className="text-sm font-medium text-text-muted hover:text-text transition-colors" 
                 onClick={() => onOpenChange(false)}
               >
                 Cancel
               </button>
               <button 
-                className="text-sm font-medium text-black hover:opacity-60 transition-opacity" 
+                className="text-sm font-medium text-brand hover:opacity-60 transition-opacity" 
                 onClick={handleFinalSave}
               >
                 Apply

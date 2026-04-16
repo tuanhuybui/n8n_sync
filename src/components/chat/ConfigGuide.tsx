@@ -8,6 +8,10 @@ export const ConfigGuide: React.FC = () => {
       description: "Trong n8n, tạo một workflow mới và thêm node 'Webhook'. Thiết kế luồng xử lý của bạn.",
     },
     {
+      title: "Chế độ kết nối",
+      description: "Mặc định là 'Direct' (Trực tiếp) để bảo mật tối đa. Nếu n8n của bạn chặn CORS, hãy chuyển sang 'Proxy'.",
+    },
+    {
       title: "Cấu hình Webhook",
       description: "Cài đặt HTTP Method là 'POST'. Đây là địa chỉ URL bạn sẽ dùng để kết nối với Chat IU.",
     },
