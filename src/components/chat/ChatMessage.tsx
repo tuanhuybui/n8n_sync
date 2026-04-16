@@ -9,7 +9,7 @@ import 'highlight.js/styles/github.css'; // Changed to light theme highlight
 import { Message } from '../../types';
 import { cn } from '@/lib/utils';
 import { Copy, Check } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/ui-button';
 import { toast } from 'sonner';
 
 interface ChatMessageProps {

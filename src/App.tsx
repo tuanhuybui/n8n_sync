@@ -7,7 +7,7 @@ import { ChatSession, Message, N8NConfig } from './types';
 import { sendToN8N } from './services/n8nService';
 import { Toaster, toast } from 'sonner';
 import { Plus, Search, Settings, Coffee, Trash2, Palette, Info, Type } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/ui/ui-button';
 import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { motion, AnimatePresence } from 'motion/react';
 import { ScrollArea } from '@/components/ui/scroll-area';
