@@ -62,6 +62,7 @@ export default function App() {
   const [isActionDropdownOpen, setIsActionDropdownOpen] = useState(false);
   const [showScrollButton, setShowScrollButton] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const isUserScrolledRef = useRef(false);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const themeRef = useRef<HTMLDivElement>(null);
@@ -188,19 +189,22 @@ export default function App() {
   }, [config]);
 
   useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    if (messagesEndRef.current && !isUserScrolledRef.current) {
+      // Use 'auto' instead of 'smooth' to prevent stuttering/cancellation during rapid state updates from streaming
+      messagesEndRef.current.scrollIntoView({ behavior: 'auto' });
     }
   }, [sessions, currentSessionId]);
 
   const scrollToBottom = () => {
+    isUserScrolledRef.current = false;
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
   const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
     const target = e.currentTarget;
-    const isAtBottom = target.scrollHeight - target.scrollTop <= target.clientHeight + 100;
+    const isAtBottom = target.scrollHeight - target.scrollTop <= target.clientHeight + 150;
     setShowScrollButton(!isAtBottom);
+    isUserScrolledRef.current = !isAtBottom;
   };
 
   const currentSession = sessions.find(s => s.id === currentSessionId);
@@ -281,6 +285,8 @@ export default function App() {
     }));
 
     setIsLoading(true);
+    isUserScrolledRef.current = false; // Force auto-scroll when user sends message
+    setTimeout(scrollToBottom, 50);
 
     // Prepare an empty assistant message to be filled by the stream
     const assistantMessageId = crypto.randomUUID();
@@ -552,7 +558,7 @@ export default function App() {
         {/* Top Left Floating Menu */}
         <div ref={menuRef} className="absolute top-2 left-4 md:top-3 md:left-6 z-40 flex flex-col gap-4 w-[calc(100%-2rem)] md:w-80 pointer-events-none">
           {/* Logo & Agent Selector Row */}
-          <div className="flex items-center gap-2 md:gap-4 pointer-events-auto">
+          <div className="flex items-center gap-2 md:gap-4 pointer-events-auto w-max">
             <button
               onClick={() => {
                 const nextView = headerView === 'agent' ? 'action' : 'agent';
