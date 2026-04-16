@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import TextareaAutosize from 'react-textarea-autosize';
-import { ArrowUp } from 'lucide-react';
+import { ArrowUp, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/ui-button';
 import { cn } from '@/lib/utils';
 
@@ -44,7 +44,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({ onSend, isLoading, disable
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="Nhập ý tưởng của bạn..."
+          placeholder="Nhập câu hỏi của bạn..."
           className="flex-grow bg-transparent border-none outline-none focus:outline-none focus:ring-0 text-text placeholder-gray-300 py-2 md:py-3 px-3 md:px-4 resize-none text-xl md:text-3xl font-serif italic font-light"
           disabled={disabled || isLoading}
           style={{ caretColor: '#000', boxShadow: 'none' }}

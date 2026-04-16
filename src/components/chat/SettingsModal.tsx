@@ -17,8 +17,9 @@ import {
   SelectValue,
 } from '../ui/select';
 import { N8NConfig, WebhookProfile } from '../../types';
-import { Plus, Trash2, Edit2, Check, Shield, Info } from 'lucide-react';
+import { Plus, Trash2, Edit2, Check, Shield, ArrowLeft, Settings2, Globe } from 'lucide-react';
 import { Separator } from '../ui/separator';
+import { cn } from '@/lib/utils';
 
 interface SettingsModalProps {
   open: boolean;
@@ -87,180 +88,222 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px] max-h-[80vh] overflow-y-auto bg-surface text-text border-border">
-        <DialogHeader>
-          <DialogTitle>Agent Configurations</DialogTitle>
+      <DialogContent className="sm:max-w-[550px] max-h-[85vh] flex flex-col p-0 overflow-hidden bg-white text-black border-none shadow-none">
+        <DialogHeader className="px-6 py-8 border-b border-gray-100">
+          <div className="flex items-center justify-between">
+            <div>
+              <DialogTitle className="text-xl font-medium tracking-tight">Agent Configuration</DialogTitle>
+              <p className="text-sm text-gray-400 mt-1">Manage your AI agents and webhooks</p>
+            </div>
+            {!editingProfileId && (
+              <button 
+                onClick={handleAddProfile} 
+                className="text-sm font-medium text-black hover:opacity-60 transition-opacity"
+              >
+                Add Agent
+              </button>
+            )}
+          </div>
         </DialogHeader>
         
-        <div className="space-y-6 py-4">
-          {/* Profiles List */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <Label className="text-sm font-semibold">Your Agents</Label>
-              <Button variant="outline" size="sm" onClick={handleAddProfile} className="h-8 gap-1 border-border hover:bg-surface-hover text-text">
-                <Plus size={14} /> Add Agent
-              </Button>
-            </div>
-            
-            <div className="grid gap-2">
-              {profiles.length === 0 && (
-                <p className="text-sm text-text-muted italic text-center py-4">No agents configured yet.</p>
-              )}
-              {profiles.map((profile) => (
-                <div 
-                  key={profile.id}
-                  className="flex items-center justify-between p-3 rounded-lg border border-border bg-surface-hover/50"
-                >
-                  <div className="flex flex-col">
-                    <span className="font-medium text-sm">{profile.name}</span>
-                    <span className="text-xs text-text-muted truncate max-w-[200px]">{profile.webhookUrl || 'No URL'}</span>
-                  </div>
-                  <div className="flex gap-1">
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-text-muted hover:text-text" onClick={() => handleEditProfile(profile)}>
-                      <Edit2 size={14} />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50" onClick={() => handleDeleteProfile(profile.id)}>
-                      <Trash2 size={14} />
-                    </Button>
-                  </div>
+        <div className="flex-1 overflow-y-auto no-scrollbar">
+          <div className="p-6">
+            {!editingProfileId ? (
+              <div className="space-y-8">
+                <div className="grid gap-4">
+                  {profiles.length === 0 && (
+                    <div className="py-12 text-center">
+                      <p className="text-sm text-gray-400">No agents configured.</p>
+                    </div>
+                  )}
+                  {profiles.map((profile) => (
+                    <div 
+                      key={profile.id}
+                      className="group flex items-center justify-between py-4 border-b border-gray-50 last:border-0"
+                    >
+                      <div className="flex flex-col gap-1">
+                        <span className="font-medium text-sm">{profile.name}</span>
+                        <div className="flex items-center gap-3">
+                          <span className="text-[10px] text-gray-400 uppercase tracking-widest">{profile.authType}</span>
+                          <span className="text-[11px] text-gray-400 truncate max-w-[250px] font-mono">{profile.webhookUrl || 'No URL'}</span>
+                        </div>
+                      </div>
+                      <div className="flex gap-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button 
+                          className="text-xs font-medium text-gray-400 hover:text-black transition-colors" 
+                          onClick={() => handleEditProfile(profile)}
+                        >
+                          Edit
+                        </button>
+                        <button 
+                          className="text-xs font-medium text-gray-400 hover:text-red-500 transition-colors" 
+                          onClick={() => handleDeleteProfile(profile.id)}
+                        >
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          </div>
-
-          {editingProfileId && (
-            <>
-              <Separator className="bg-border" />
-              <div className="space-y-4 animate-in fade-in slide-in-from-top-2">
-                <h3 className="text-sm font-semibold">Editing: {currentProfile.name}</h3>
-                
-                <div className="grid gap-2">
-                  <Label htmlFor="name">Agent Name</Label>
-                  <Input
-                    id="name"
-                    className="bg-surface border-border focus-visible:ring-brand text-text"
-                    value={currentProfile.name || ''}
-                    onChange={(e) => setCurrentProfile({ ...currentProfile, name: e.target.value })}
-                  />
-                </div>
-
-                <div className="grid gap-2">
-                  <Label htmlFor="webhookUrl">Webhook URL</Label>
-                  <Input
-                    id="webhookUrl"
-                    className="bg-surface border-border focus-visible:ring-brand text-text"
-                    placeholder="https://your-n8n.com/webhook/..."
-                    value={currentProfile.webhookUrl || ''}
-                    onChange={(e) => setCurrentProfile({ ...currentProfile, webhookUrl: e.target.value })}
-                  />
-                </div>
-
-                <div className="grid gap-2">
-                  <Label htmlFor="connectionType">Connection Type (Privacy)</Label>
-                  <Select
-                    value={currentProfile.useProxy === false ? 'direct' : 'proxy'}
-                    onValueChange={(value: 'direct' | 'proxy') => setCurrentProfile({ ...currentProfile, useProxy: value === 'direct' ? false : true })}
+              </div>
+            ) : (
+              <div className="space-y-10 animate-in fade-in slide-in-from-bottom-2 duration-300">
+                <div className="flex items-center gap-4">
+                  <button 
+                    className="text-xs text-gray-400 hover:text-black transition-colors" 
+                    onClick={() => { setEditingProfileId(null); setCurrentProfile({}); }}
                   >
-                    <SelectTrigger id="connectionType" className="bg-surface border-border focus:ring-brand text-text">
-                      <SelectValue placeholder="Select connection type" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-surface border-border text-text">
-                      <SelectItem value="proxy">
-                        <div className="flex flex-col items-start gap-0.5">
-                          <span className="font-medium">Proxy (Default)</span>
-                          <span className="text-[10px] opacity-70">Easier setup, passes through server</span>
+                    Back
+                  </button>
+                  <h3 className="text-sm font-medium">Edit Agent</h3>
+                </div>
+                
+                <div className="space-y-8">
+                  <div className="grid gap-2">
+                    <Label htmlFor="name" className="text-[10px] uppercase font-medium text-gray-400 tracking-widest">Name</Label>
+                    <input
+                      id="name"
+                      type="text"
+                      placeholder="Agent Name"
+                      className="w-full py-2 border-b border-gray-100 focus:border-black outline-none transition-colors text-sm bg-transparent"
+                      value={currentProfile.name || ''}
+                      onChange={(e) => setCurrentProfile({ ...currentProfile, name: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="grid gap-2">
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="webhookUrl" className="text-[10px] uppercase font-medium text-gray-400 tracking-widest">Webhook URL</Label>
+                      <span className="text-[9px] text-gray-300 uppercase tracking-tighter">Local only</span>
+                    </div>
+                    <input
+                      id="webhookUrl"
+                      type="text"
+                      className="w-full py-2 border-b border-gray-100 focus:border-black outline-none transition-colors text-sm font-mono bg-transparent"
+                      placeholder="https://..."
+                      value={currentProfile.webhookUrl || ''}
+                      onChange={(e) => setCurrentProfile({ ...currentProfile, webhookUrl: e.target.value })}
+                    />
+                  </div>
+
+                  <div className="grid gap-4">
+                    <Label className="text-[10px] uppercase font-medium text-gray-400 tracking-widest">Connection</Label>
+                    <div className="flex gap-6">
+                      <button 
+                        className={cn(
+                          "text-sm transition-colors",
+                          currentProfile.useProxy === false ? "text-black font-medium underline underline-offset-4" : "text-gray-400"
+                        )}
+                        onClick={() => setCurrentProfile({ ...currentProfile, useProxy: false })}
+                      >
+                        Direct
+                      </button>
+                      <button 
+                        className={cn(
+                          "text-sm transition-colors",
+                          currentProfile.useProxy !== false ? "text-black font-medium underline underline-offset-4" : "text-gray-400"
+                        )}
+                        onClick={() => setCurrentProfile({ ...currentProfile, useProxy: true })}
+                      >
+                        Proxy
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div className="grid gap-4">
+                    <Label htmlFor="authType" className="text-[10px] uppercase font-medium text-gray-400 tracking-widest">Authentication</Label>
+                    <Select
+                      value={currentProfile.authType}
+                      onValueChange={(value: any) => setCurrentProfile({ ...currentProfile, authType: value })}
+                    >
+                      <SelectTrigger id="authType" className="h-auto p-0 border-none shadow-none focus:ring-0 text-sm bg-transparent">
+                        <SelectValue placeholder="Select type" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white border border-gray-100 shadow-xl rounded-none">
+                        <SelectItem value="none">None</SelectItem>
+                        <SelectItem value="header">Custom Header</SelectItem>
+                        <SelectItem value="bearer">Bearer Token</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {currentProfile.authType === 'header' && (
+                    <div className="grid grid-cols-2 gap-8 animate-in fade-in slide-in-from-top-1">
+                      <div className="grid gap-2">
+                        <Label htmlFor="headerName" className="text-[10px] text-gray-400 uppercase tracking-widest">Key</Label>
+                        <input
+                          id="headerName"
+                          className="w-full py-2 border-b border-gray-100 focus:border-black outline-none text-sm bg-transparent"
+                          placeholder="X-API-KEY"
+                          value={currentProfile.authHeaderName || ''}
+                          onChange={(e) => setCurrentProfile({ ...currentProfile, authHeaderName: e.target.value })}
+                        />
+                      </div>
+                      <div className="grid gap-2">
+                        <div className="flex items-center justify-between">
+                          <Label htmlFor="headerValue" className="text-[10px] text-gray-400 uppercase tracking-widest">Value</Label>
+                          <span className="text-[9px] text-gray-300 uppercase tracking-tighter">Private</span>
                         </div>
-                      </SelectItem>
-                      <SelectItem value="direct">
-                        <div className="flex flex-col items-start gap-0.5">
-                          <div className="flex items-center gap-1">
-                            <span className="font-medium">Direct</span>
-                            <Shield size={10} className="text-green-500" />
-                          </div>
-                          <span className="text-[10px] opacity-70">Maximum Privacy, browser to n8n only</span>
-                        </div>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                  {currentProfile.useProxy === false && (
-                    <div className="flex items-start gap-2 p-3 bg-green-500/10 border border-green-500/20 rounded-lg mt-1">
-                      <Info size={14} className="text-green-500 mt-0.5 shrink-0" />
-                      <p className="text-[11px] text-green-600 leading-relaxed">
-                        <b>Direct Connection:</b> Your credentials never leave your browser. 
-                        Ensure your n8n instance allows CORS requests from this domain.
-                      </p>
+                        <input
+                          id="headerValue"
+                          type="password"
+                          className="w-full py-2 border-b border-gray-100 focus:border-black outline-none text-sm bg-transparent"
+                          value={currentProfile.authHeaderValue || ''}
+                          onChange={(e) => setCurrentProfile({ ...currentProfile, authHeaderValue: e.target.value })}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {currentProfile.authType === 'bearer' && (
+                    <div className="grid gap-2 animate-in fade-in slide-in-from-top-1">
+                      <div className="flex items-center justify-between">
+                        <Label htmlFor="token" className="text-[10px] text-gray-400 uppercase tracking-widest">Token</Label>
+                        <span className="text-[9px] text-gray-300 uppercase tracking-tighter">Private</span>
+                      </div>
+                      <input
+                        id="token"
+                        type="password"
+                        className="w-full py-2 border-b border-gray-100 focus:border-black outline-none text-sm bg-transparent"
+                        placeholder="Bearer token..."
+                        value={currentProfile.authToken || ''}
+                        onChange={(e) => setCurrentProfile({ ...currentProfile, authToken: e.target.value })}
+                      />
                     </div>
                   )}
                 </div>
-                
-                <div className="grid gap-2">
-                  <Label htmlFor="authType">Authentication Type</Label>
-                  <Select
-                    value={currentProfile.authType}
-                    onValueChange={(value: any) => setCurrentProfile({ ...currentProfile, authType: value })}
-                  >
-                    <SelectTrigger id="authType" className="bg-surface border-border focus:ring-brand text-text">
-                      <SelectValue placeholder="Select auth type" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-surface border-border text-text">
-                      <SelectItem value="none">None</SelectItem>
-                      <SelectItem value="header">Custom Header</SelectItem>
-                      <SelectItem value="bearer">Bearer Token</SelectItem>
-                    </SelectContent>
-                  </Select>
+
+                <div className="flex gap-8 pt-4">
+                  <button className="text-sm font-medium text-black hover:opacity-60 transition-opacity" onClick={handleSaveProfile}>
+                    Save Agent
+                  </button>
+                  <button className="text-sm font-medium text-gray-400 hover:text-black transition-colors" onClick={() => setEditingProfileId(null)}>
+                    Cancel
+                  </button>
                 </div>
-
-                {currentProfile.authType === 'header' && (
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="grid gap-2">
-                      <Label htmlFor="headerName">Header Name</Label>
-                      <Input
-                        id="headerName"
-                        className="bg-surface border-border focus-visible:ring-brand text-text"
-                        placeholder="X-API-KEY"
-                        value={currentProfile.authHeaderName || ''}
-                        onChange={(e) => setCurrentProfile({ ...currentProfile, authHeaderName: e.target.value })}
-                      />
-                    </div>
-                    <div className="grid gap-2">
-                      <Label htmlFor="headerValue">Header Value</Label>
-                      <Input
-                        id="headerValue"
-                        type="password"
-                        className="bg-surface border-border focus-visible:ring-brand text-text"
-                        value={currentProfile.authHeaderValue || ''}
-                        onChange={(e) => setCurrentProfile({ ...currentProfile, authHeaderValue: e.target.value })}
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {currentProfile.authType === 'bearer' && (
-                  <div className="grid gap-2">
-                    <Label htmlFor="token">Bearer Token</Label>
-                    <Input
-                      id="token"
-                      type="password"
-                      className="bg-surface border-border focus-visible:ring-brand text-text"
-                      placeholder="ey..."
-                      value={currentProfile.authToken || ''}
-                      onChange={(e) => setCurrentProfile({ ...currentProfile, authToken: e.target.value })}
-                    />
-                  </div>
-                )}
-
-                <Button className="w-full gap-2 bg-brand text-white hover:bg-brand/90" onClick={handleSaveProfile}>
-                  <Check size={16} /> Update Agent Details
-                </Button>
               </div>
-            </>
-          )}
+            )}
+          </div>
         </div>
 
-        <DialogFooter className="mt-6">
-          <Button variant="outline" className="border-border hover:bg-surface-hover text-text" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button className="bg-brand text-white hover:bg-brand/90" onClick={handleFinalSave}>Save All Changes</Button>
-        </DialogFooter>
+        {!editingProfileId && (
+          <DialogFooter className="px-6 py-8 border-t border-gray-100 bg-gray-50/30">
+            <div className="flex gap-6 w-full justify-end">
+              <button 
+                className="text-sm font-medium text-gray-400 hover:text-black transition-colors" 
+                onClick={() => onOpenChange(false)}
+              >
+                Cancel
+              </button>
+              <button 
+                className="text-sm font-medium text-black hover:opacity-60 transition-opacity" 
+                onClick={handleFinalSave}
+              >
+                Apply
+              </button>
+            </div>
+          </DialogFooter>
+        )}
       </DialogContent>
     </Dialog>
   );

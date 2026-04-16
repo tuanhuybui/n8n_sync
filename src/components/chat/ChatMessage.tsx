@@ -29,7 +29,7 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message, agentName = '
   };
 
   return (
-    <div className={cn("py-3 md:py-4 px-2 md:px-0 group", isUser && "flex flex-col items-end")}>
+    <div className={cn("py-3 md:py-4 group", isUser && "flex flex-col items-end")}>
       <div className={cn("flex flex-col gap-1", isUser ? "items-end max-w-[90%] md:max-w-[80%]" : "w-full mx-auto")}>
         <div className="flex items-center gap-2">
           <span className="text-xs md:text-sm font-semibold text-text">

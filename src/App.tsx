@@ -2,13 +2,15 @@ import { useState, useEffect, useRef } from 'react';
 import { ChatMessage } from './components/chat/ChatMessage';
 import { ChatInput } from './components/chat/ChatInput';
 import { SettingsModal } from './components/chat/SettingsModal';
-import { InfoModal } from './components/chat/InfoModal';
+import { InfoPopover } from './components/chat/InfoPopover';
+import { CoffeePopover } from './components/chat/CoffeePopover';
 import { ChatSession, Message, N8NConfig } from './types';
 import { sendToN8N } from './services/n8nService';
 import { Toaster, toast } from 'sonner';
-import { Plus, Search, Settings, Coffee, Trash2, Palette, Info, Type } from 'lucide-react';
+import { Plus, Search, Settings, Coffee, Trash2, Palette, Info, Type, ChevronDown } from 'lucide-react';
 import { Button } from '@/components/ui/ui-button';
 import { TooltipProvider, Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { motion, AnimatePresence } from 'motion/react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
@@ -43,7 +45,6 @@ export default function App() {
   const [currentSessionId, setCurrentSessionId] = useState<string | null>(null);
   const [config, setConfig] = useState<N8NConfig>(DEFAULT_CONFIG);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [isInfoOpen, setIsInfoOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -51,8 +52,12 @@ export default function App() {
   const [fontSize, setFontSize] = useState<number>(16);
   const [isThemeSelectorOpen, setIsThemeSelectorOpen] = useState(false);
   const [isFontSizeSelectorOpen, setIsFontSizeSelectorOpen] = useState(false);
-  
+  const [headerView, setHeaderView] = useState<'agent' | 'action'>('agent');
+  const [isAgentDropdownOpen, setIsAgentDropdownOpen] = useState(false);
+  const [isActionDropdownOpen, setIsActionDropdownOpen] = useState(false);
+  const [showScrollButton, setShowScrollButton] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
   const themeRef = useRef<HTMLDivElement>(null);
 
@@ -126,7 +131,7 @@ export default function App() {
         initialConfig = {
           profiles: [{
             id: 'default',
-            name: 'Default Agent',
+            name: 'Chat IU Agent',
             webhookUrl: oldConfig.webhookUrl || '',
             authType: oldConfig.authType || 'none',
             authHeaderName: oldConfig.authHeaderName,
@@ -165,8 +170,20 @@ export default function App() {
   }, [config]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
   }, [sessions, currentSessionId]);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const target = e.currentTarget;
+    const isAtBottom = target.scrollHeight - target.scrollTop <= target.clientHeight + 100;
+    setShowScrollButton(!isAtBottom);
+  };
 
   const currentSession = sessions.find(s => s.id === currentSessionId);
   const activeProfile = config.profiles.find(p => p.id === (currentSession?.profileId || config.activeProfileId));
@@ -277,6 +294,11 @@ export default function App() {
     }
   };
 
+  const handleClearAllData = () => {
+    localStorage.clear();
+    window.location.reload();
+  };
+
   const filteredSessions = sessions.filter(s => s.title.toLowerCase().includes(searchQuery.toLowerCase()));
 
   return (
@@ -285,7 +307,7 @@ export default function App() {
         <Toaster position="top-center" richColors />
         
         {/* Top Right Navigation */}
-        <div className="absolute top-4 right-4 md:top-6 md:right-8 z-20 flex items-center gap-3 md:gap-6 text-sm font-medium text-gray-500">
+        <div className="absolute top-4 right-4 md:top-6 md:right-8 z-20 flex items-center h-10 gap-3 md:gap-6 text-sm font-medium text-gray-500">
           <div ref={themeRef} className="flex items-center gap-2 md:gap-3">
             <AnimatePresence>
               {isThemeSelectorOpen && (
@@ -293,7 +315,7 @@ export default function App() {
                   initial={{ opacity: 0, x: 20, width: 0 }}
                   animate={{ opacity: 1, x: 0, width: 'auto' }}
                   exit={{ opacity: 0, x: 20, width: 0 }}
-                  className="flex items-center gap-1.5 md:gap-2 overflow-hidden pr-1 md:pr-2"
+                  className="flex items-center gap-1.5 md:gap-2 overflow-hidden px-1 md:pr-2"
                 >
                   {[
                     { id: 'default', color: '#f3f3f3', label: 'Mặc định' },
@@ -306,8 +328,8 @@ export default function App() {
                       key={t.id}
                       onClick={() => handleThemeChange(t.id as Theme)}
                       className={cn(
-                        "w-5 h-5 md:w-6 md:h-6 rounded-full border transition-all hover:scale-110",
-                        theme === t.id ? "scale-110" : "border-border"
+                        "w-5 h-5 md:w-6 md:h-6 rounded-full border transition-all cursor-pointer",
+                        theme === t.id ? "border-brand border-2 shadow-sm" : "border-border"
                       )}
                       style={{ backgroundColor: t.color }}
                       title={t.label}
@@ -367,19 +389,35 @@ export default function App() {
             </button>
           </div>
 
-          <button className="hover:text-gray-800 transition-colors flex items-center gap-2 p-1.5">
-            <Coffee size={18} />
-            <span className="hidden sm:inline">Mời Cafe</span>
-          </button>
+          <Popover>
+            <PopoverTrigger asChild>
+              <button className="hover:text-gray-800 transition-colors flex items-center gap-2 p-1.5 cursor-pointer" title="Mời Cafe">
+                <Coffee size={18} />
+                <span className="hidden sm:inline">Mời Cafe</span>
+              </button>
+            </PopoverTrigger>
+            <PopoverContent side="bottom" align="end" sideOffset={12} className="w-64">
+              <CoffeePopover />
+            </PopoverContent>
+          </Popover>
 
-          <button 
-            onClick={() => setIsInfoOpen(true)}
-            className="hover:text-brand transition-colors flex items-center gap-2 p-1.5"
-            title="Thông tin bảo mật"
-          >
-            <Info size={18} />
-            <span className="hidden sm:inline">Info</span>
-          </button>
+          <Popover>
+            <PopoverTrigger asChild>
+              <button 
+                className="hover:text-brand transition-colors flex items-center gap-2 p-1.5 cursor-pointer"
+                title="Thông tin bảo mật"
+              >
+                <Info size={18} />
+                <span className="hidden sm:inline">Info</span>
+              </button>
+            </PopoverTrigger>
+            <PopoverContent side="bottom" align="end" sideOffset={12} className="w-80">
+              <InfoPopover 
+                onClearData={handleClearAllData} 
+                connectionType={activeProfile?.useProxy === false ? 'direct' : 'proxy'} 
+              />
+            </PopoverContent>
+          </Popover>
         </div>
 
         {/* Top Left Floating Menu */}
@@ -387,49 +425,111 @@ export default function App() {
           {/* Logo & Agent Selector Row */}
           <div className="flex items-center gap-2 md:gap-4 pointer-events-auto">
             <button
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="w-10 h-10 flex items-center justify-center bg-surface hover:bg-surface-hover rounded-xl transition-colors flex-shrink-0 shadow-sm"
+              onClick={() => {
+                const nextView = headerView === 'agent' ? 'action' : 'agent';
+                setHeaderView(nextView);
+                setIsMenuOpen(nextView === 'action');
+              }}
+              className={cn(
+                "w-10 h-10 flex items-center justify-center bg-surface hover:bg-surface-hover rounded-xl transition-all duration-300 flex-shrink-0 shadow-sm",
+                headerView === 'action' && "bg-brand-light/20 rotate-90"
+              )}
             >
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-text">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={cn("transition-colors", headerView === 'action' ? "text-brand" : "text-text")}>
                 <path d="M4 16c4-8 12-8 16 0" />
               </svg>
             </button>
 
-            {/* Agent Selector Always Visible */}
-            {config.profiles.length > 0 && (
-              <Select 
-                value={currentSession?.profileId || config.activeProfileId || ''} 
-                onValueChange={(val) => {
-                  if (currentSession) {
-                    setSessions(prev => prev.map(s => 
-                      s.id === currentSessionId ? { ...s, profileId: val } : s
-                    ));
-                  }
-                }}
-              >
-                <SelectTrigger className="px-3 md:px-4 py-2 border-none shadow-sm focus:ring-0 bg-surface hover:bg-surface-hover rounded-xl h-10 w-auto min-w-[100px] md:min-w-[120px] flex gap-2 font-medium">
-                  <div className="truncate max-w-[100px] md:max-w-[150px] text-sm md:text-base">
-                    {config.profiles.find(p => p.id === (currentSession?.profileId || config.activeProfileId))?.name || "Select Agent"}
-                  </div>
-                </SelectTrigger>
-                <SelectContent className="bg-surface border-border text-text shadow-sm rounded-xl z-[70]">
-                  {config.profiles.map(p => (
-                    <SelectItem key={p.id} value={p.id} className="cursor-pointer hover:bg-surface-hover rounded-lg">
-                      {p.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
-            
-            {/* New Chat Button */}
-            <button
-              onClick={() => handleNewChat()}
-              className="w-10 h-10 flex items-center justify-center bg-surface hover:bg-surface-hover rounded-xl transition-colors flex-shrink-0 text-brand shadow-sm"
-              title="New Chat"
-            >
-              <Plus size={20} />
-            </button>
+            {/* Conditional Header Content */}
+            <AnimatePresence mode="wait">
+              {headerView === 'agent' ? (
+                <motion.div
+                  key="agent-view"
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -10 }}
+                  className="flex items-center"
+                >
+                  {config.profiles.length > 0 && (
+                    <div className="flex items-center gap-2">
+                      <DropdownMenu open={isAgentDropdownOpen} onOpenChange={setIsAgentDropdownOpen}>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            className="h-10 px-4 gap-2 border-none shadow-none focus:ring-0 bg-brand-light/20 hover:bg-brand-light/30 rounded-xl min-w-[120px] max-w-[200px] flex justify-between items-center font-medium group transition-all"
+                          >
+                            <span className="truncate">
+                              {config.profiles.find(p => p.id === (currentSession?.profileId || config.activeProfileId))?.name || "Select Agent"}
+                            </span>
+                            <ChevronDown size={14} className={cn("opacity-50 transition-transform duration-300", isAgentDropdownOpen && "rotate-180")} />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent 
+                          align="start" 
+                          sideOffset={4}
+                          alignOffset={0}
+                          className="w-[180px] bg-white border border-gray-100 shadow-sm rounded-xl p-0 z-[70] animate-in slide-in-from-top-1 duration-200"
+                        >
+                          {config.profiles.map(p => (
+                            <DropdownMenuItem
+                              key={p.id}
+                              onClick={() => {
+                                if (currentSession) {
+                                  setSessions(prev => prev.map(s => 
+                                    s.id === currentSessionId ? { ...s, profileId: p.id } : s
+                                  ));
+                                }
+                                setIsAgentDropdownOpen(false);
+                              }}
+                              className={cn(
+                                "cursor-pointer px-4 py-2.5 text-xs transition-colors text-gray-600 first:rounded-t-xl last:rounded-b-xl",
+                                (currentSession?.profileId || config.activeProfileId) === p.id 
+                                  ? "bg-gray-50 font-medium text-black" 
+                                  : "hover:bg-gray-50/50 hover:text-black"
+                              )}
+                            >
+                              {p.name}
+                            </DropdownMenuItem>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button 
+                            onClick={() => handleNewChat()}
+                            className="h-10 w-10 p-0 bg-brand-light/20 hover:bg-brand-light/30 text-brand border-none shadow-none rounded-xl flex-shrink-0"
+                          >
+                            <Plus size={18} />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="bottom" sideOffset={10}>
+                          Tạo chat mới
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                  )}
+                </motion.div>
+              ) : (
+                <motion.div
+                  key="action-view"
+                  initial={{ opacity: 0, x: 10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 10 }}
+                >
+                  <Button
+                    className="h-10 px-4 gap-2 bg-brand-light/30 hover:bg-brand-light/50 text-brand border-none shadow-none rounded-xl font-medium"
+                    onClick={() => {
+                      setIsSettingsOpen(true);
+                      setHeaderView('agent');
+                    }}
+                  >
+                    <Plus size={18} />
+                    <span>New Agent</span>
+                  </Button>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
 
           {/* Dropdown Content (Search + History + New Agent) */}
@@ -508,18 +608,6 @@ export default function App() {
                   </div>
                 </ScrollArea>
 
-                {/* New Agent Button */}
-                <Button 
-                  variant="ghost" 
-                  className="w-full h-12 md:h-14 justify-start gap-3 text-brand hover:text-brand hover:bg-brand-light/40 rounded-2xl bg-brand-light/20 shadow-sm border border-brand/10"
-                  onClick={() => {
-                    setIsSettingsOpen(true);
-                    if (window.innerWidth < 768) setIsMenuOpen(false);
-                  }}
-                >
-                  <Plus size={20} />
-                  <span className="font-semibold">New Agent</span>
-                </Button>
               </motion.div>
             )}
           </AnimatePresence>
@@ -528,7 +616,11 @@ export default function App() {
         {/* Main Content */}
         <main className="flex-grow flex flex-col relative h-full overflow-hidden bg-transparent">
           {/* Messages Area */}
-          <div className="flex-grow overflow-y-auto px-4 md:px-12 pt-20 md:pt-24">
+          <div 
+            ref={scrollAreaRef}
+            onScroll={handleScroll}
+            className="flex-grow overflow-y-auto pt-20 md:pt-24"
+          >
             {currentSession?.messages.length === 0 ? (
               <div className="h-full flex flex-col items-center justify-center text-center px-4">
                 <motion.div
@@ -537,34 +629,51 @@ export default function App() {
                   className="space-y-6"
                 >
                   <h1 className="text-4xl md:text-6xl font-serif italic text-text/90 font-light tracking-tight">
-                    How can I help you?
+                    Chat IU
                   </h1>
                   <p className="text-text-muted text-lg md:text-xl font-light max-w-md mx-auto">
-                    Chọn một Agent và bắt đầu cuộc trò chuyện của bạn.
+                    Kết nối Agent từ webhook của bạn và bắt đầu trò chuyện.
                   </p>
                 </motion.div>
               </div>
             ) : (
-              <div className="flex flex-col max-w-5xl w-full mx-auto pb-32">
-                <AnimatePresence initial={false}>
-                  {currentSession?.messages.map((message) => (
-                    <motion.div
-                      key={message.id}
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <ChatMessage 
-                        message={message} 
-                        agentName={config.profiles.find(p => p.id === (currentSession?.profileId || config.activeProfileId))?.name}
-                      />
-                    </motion.div>
-                  ))}
-                </AnimatePresence>
-                <div ref={messagesEndRef} className="h-10" />
+              <div className="flex flex-col max-w-5xl w-full mx-auto pb-48 px-4 md:px-12">
+                <div className="px-2 md:px-4">
+                  <AnimatePresence initial={false}>
+                    {currentSession?.messages.map((message) => (
+                      <motion.div
+                        key={message.id}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3 }}
+                      >
+                        <ChatMessage 
+                          message={message} 
+                          agentName={config.profiles.find(p => p.id === (currentSession?.profileId || config.activeProfileId))?.name}
+                        />
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                  <div ref={messagesEndRef} className="h-4" />
+                </div>
               </div>
             )}
           </div>
+
+          {/* Scroll to Bottom Button */}
+          <AnimatePresence>
+            {showScrollButton && (
+              <motion.button
+                initial={{ opacity: 0, scale: 0.8, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.8, y: 10 }}
+                onClick={scrollToBottom}
+                className="absolute bottom-32 right-8 md:right-12 p-3 bg-surface hover:bg-surface-hover border border-border shadow-lg rounded-full text-text-muted hover:text-text transition-all z-30"
+              >
+                <ChevronDown size={20} />
+              </motion.button>
+            )}
+          </AnimatePresence>
 
           {/* Input Area */}
           <div className="absolute bottom-0 left-0 w-full flex justify-center z-20 bg-gradient-to-t from-bg via-bg to-transparent pt-10 pb-4 md:pb-6 pointer-events-none">
@@ -583,11 +692,6 @@ export default function App() {
           onOpenChange={setIsSettingsOpen}
           config={config}
           onSave={handleUpdateConfig}
-        />
-
-        <InfoModal
-          open={isInfoOpen}
-          onOpenChange={setIsInfoOpen}
         />
       </div>
     </TooltipProvider>
