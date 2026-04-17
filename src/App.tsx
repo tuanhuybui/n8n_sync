@@ -58,6 +58,7 @@ export default function App() {
   const [isFontSizeSelectorOpen, setIsFontSizeSelectorOpen] = useState(false);
   const [isFontSelectorOpen, setIsFontSelectorOpen] = useState(false);
   const [headerView, setHeaderView] = useState<'agent' | 'action'>('agent');
+  const [vietlawView, setVietlawView] = useState<'logo' | 'action'>('logo');
   const [isAgentDropdownOpen, setIsAgentDropdownOpen] = useState(false);
   const [isActionDropdownOpen, setIsActionDropdownOpen] = useState(false);
   const [showScrollButton, setShowScrollButton] = useState(false);
@@ -394,135 +395,203 @@ export default function App() {
         <Toaster position="top-center" richColors />
         
         {/* Top Right Navigation */}
-        <div className="absolute top-2 right-4 md:top-3 md:right-8 z-20 flex items-center h-10 gap-3 md:gap-6 text-sm font-medium text-gray-500">
-          <div ref={themeRef} className="flex items-center gap-2 md:gap-3">
-            <AnimatePresence>
-              {isThemeSelectorOpen && (
-                <motion.div
-                  initial={{ opacity: 0, x: 20, width: 0 }}
-                  animate={{ opacity: 1, x: 0, width: 'auto' }}
-                  exit={{ opacity: 0, x: 20, width: 0 }}
-                  className="flex items-center gap-1.5 md:gap-2 overflow-hidden px-1 md:pr-2"
-                >
-                  {[
-                    { id: 'default', color: '#f3f3f3', label: 'Mặc định' },
-                    { id: 'white', color: '#ffffff', label: 'Trắng' },
-                    { id: 'graphite', color: '#1a1a1a', label: 'Than chì' },
-                    { id: 'orange', color: '#fffaf0', label: 'Cam nhạt' },
-                    { id: 'purple', color: '#120d1d', label: 'Tím sang trọng' }
-                  ].map((t) => (
-                    <button
-                      key={t.id}
-                      onClick={() => handleThemeChange(t.id as Theme)}
-                      className={cn(
-                        "w-5 h-5 md:w-6 md:h-6 rounded-full border transition-all cursor-pointer",
-                        theme === t.id ? "border-brand border-2 shadow-sm" : "border-border"
-                      )}
-                      style={{ backgroundColor: t.color }}
-                      title={t.label}
-                    />
-                  ))}
-                </motion.div>
-              )}
-            </AnimatePresence>
-            
-            <button 
-              onClick={() => setIsThemeSelectorOpen(!isThemeSelectorOpen)}
-              className={cn(
-                "hover:text-gray-800 transition-colors flex items-center gap-2 p-1.5",
-                isThemeSelectorOpen && "text-brand"
-              )} 
-              title="Đổi màu nền"
-            >
-              <Palette size={18} strokeWidth={1.2} />
-            </button>
-          </div>
-
-          <div ref={fontSizeRef} className="flex items-center gap-2 md:gap-3">
-            <AnimatePresence>
-              {isFontSizeSelectorOpen && (
-                <motion.div
-                  initial={{ opacity: 0, x: 20, width: 0 }}
-                  animate={{ opacity: 1, x: 0, width: 'auto' }}
-                  exit={{ opacity: 0, x: 20, width: 0 }}
-                  className="flex items-center gap-2 overflow-hidden pr-2"
-                >
-                  <button 
-                    onClick={() => handleFontSizeChange(fontSize - 2)}
-                    className="w-6 h-6 flex items-center justify-center rounded-full bg-surface hover:bg-surface-hover border border-border text-text text-xs"
+        <div className="absolute top-2 right-2 md:top-3 md:right-8 z-20 flex items-center h-10 gap-1.5 md:gap-6 text-sm font-medium text-gray-500">
+          <div className="hidden md:flex items-center gap-6">
+            <div ref={themeRef} className="flex items-center gap-3">
+              <AnimatePresence>
+                {isThemeSelectorOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, x: 20, width: 0 }}
+                    animate={{ opacity: 1, x: 0, width: 'auto' }}
+                    exit={{ opacity: 0, x: 20, width: 0 }}
+                    className="flex items-center gap-2 overflow-hidden px-1 pr-2"
                   >
-                    -
-                  </button>
-                  <span className="text-xs font-mono w-4 text-center">{fontSize}</span>
-                  <button 
-                    onClick={() => handleFontSizeChange(fontSize + 2)}
-                    className="w-6 h-6 flex items-center justify-center rounded-full bg-surface hover:bg-surface-hover border border-border text-text text-xs"
-                  >
-                    +
-                  </button>
-                </motion.div>
-              )}
-            </AnimatePresence>
-            
-            <button 
-              onClick={() => {
-                setIsFontSizeSelectorOpen(!isFontSizeSelectorOpen);
-                setIsFontSelectorOpen(false);
-              }}
-              className={cn(
-                "hover:text-gray-800 transition-colors flex items-center gap-2 p-1.5",
-                isFontSizeSelectorOpen && "text-brand"
-              )} 
-              title="Cỡ chữ"
-            >
-              <Type size={18} strokeWidth={1.2} />
-            </button>
-          </div>
+                    {[
+                      { id: 'default', color: '#f3f3f3', label: 'Mặc định' },
+                      { id: 'white', color: '#ffffff', label: 'Trắng' },
+                      { id: 'graphite', color: '#1a1a1a', label: 'Than chì' },
+                      { id: 'orange', color: '#fffaf0', label: 'Cam nhạt' },
+                      { id: 'purple', color: '#120d1d', label: 'Tím sang trọng' }
+                    ].map((t) => (
+                      <button
+                        key={t.id}
+                        onClick={() => handleThemeChange(t.id as Theme)}
+                        className={cn(
+                          "w-6 h-6 rounded-full border transition-all cursor-pointer",
+                          theme === t.id ? "border-brand border-2 shadow-sm" : "border-border"
+                        )}
+                        style={{ backgroundColor: t.color }}
+                        title={t.label}
+                      />
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              
+              <button 
+                onClick={() => setIsThemeSelectorOpen(!isThemeSelectorOpen)}
+                className={cn(
+                  "hover:text-gray-800 transition-colors flex items-center gap-2 p-1.5",
+                  isThemeSelectorOpen && "text-brand"
+                )} 
+                title="Đổi màu nền"
+              >
+                <Palette size={18} strokeWidth={1.2} />
+              </button>
+            </div>
 
-          <div ref={fontFamilyRef} className="flex items-center gap-2 md:gap-3">
-            <AnimatePresence>
-              {isFontSelectorOpen && (
-                <motion.div
-                  initial={{ opacity: 0, x: 20, width: 0 }}
-                  animate={{ opacity: 1, x: 0, width: 'auto' }}
-                  exit={{ opacity: 0, x: 20, width: 0 }}
-                  className="flex items-center gap-2 overflow-hidden px-1"
-                >
-                  {[
-                    { id: 'modern', label: 'Mod', font: 'var(--font-modern)' },
-                    { id: 'elegant', label: 'Ele', font: 'var(--font-elegant)' },
-                    { id: 'technical', label: 'Tec', font: 'var(--font-technical)' },
-                    { id: 'friendly', label: 'Sof', font: 'var(--font-friendly)' }
-                  ].map((f) => (
-                    <button
-                      key={f.id}
-                      onClick={() => handleFontChange(f.id as FontFamily)}
-                      className={cn(
-                        "px-2 py-1 rounded-md text-[10px] uppercase tracking-tighter transition-all border",
-                        fontFamily === f.id ? "bg-brand text-white border-transparent" : "bg-surface hover:bg-surface-hover border-border text-text-muted"
-                      )}
-                      style={{ fontFamily: f.font }}
+            <div ref={fontSizeRef} className="flex items-center gap-3">
+              <AnimatePresence>
+                {isFontSizeSelectorOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, x: 20, width: 0 }}
+                    animate={{ opacity: 1, x: 0, width: 'auto' }}
+                    exit={{ opacity: 0, x: 20, width: 0 }}
+                    className="flex items-center gap-2 overflow-hidden pr-2"
+                  >
+                    <button 
+                      onClick={() => handleFontSizeChange(fontSize - 2)}
+                      className="w-6 h-6 flex items-center justify-center rounded-full bg-surface hover:bg-surface-hover border border-border text-text text-xs"
                     >
-                      {f.label}
+                      -
                     </button>
-                  ))}
-                </motion.div>
-              )}
-            </AnimatePresence>
-            
-            <button 
-              onClick={() => {
-                setIsFontSelectorOpen(!isFontSelectorOpen);
-                setIsFontSizeSelectorOpen(false);
-              }}
-              className={cn(
-                "hover:text-gray-800 transition-colors flex items-center gap-2 p-1.5",
-                isFontSelectorOpen && "text-brand"
-              )} 
-              title="Phông chữ"
-            >
-              <CaseSensitive size={20} strokeWidth={1.2} />
-            </button>
+                    <span className="text-xs font-mono w-4 text-center">{fontSize}</span>
+                    <button 
+                      onClick={() => handleFontSizeChange(fontSize + 2)}
+                      className="w-6 h-6 flex items-center justify-center rounded-full bg-surface hover:bg-surface-hover border border-border text-text text-xs"
+                    >
+                      +
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              
+              <button 
+                onClick={() => {
+                  setIsFontSizeSelectorOpen(!isFontSizeSelectorOpen);
+                  setIsFontSelectorOpen(false);
+                }}
+                className={cn(
+                  "hover:text-gray-800 transition-colors flex items-center gap-2 p-1.5",
+                  isFontSizeSelectorOpen && "text-brand"
+                )} 
+                title="Cỡ chữ"
+              >
+                <Type size={18} strokeWidth={1.2} />
+              </button>
+            </div>
+
+            <div ref={fontFamilyRef} className="flex items-center gap-3">
+              <AnimatePresence>
+                {isFontSelectorOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, x: 20, width: 0 }}
+                    animate={{ opacity: 1, x: 0, width: 'auto' }}
+                    exit={{ opacity: 0, x: 20, width: 0 }}
+                    className="flex items-center gap-2 overflow-hidden px-1"
+                  >
+                    {[
+                      { id: 'modern', label: 'Mod', font: 'var(--font-modern)' },
+                      { id: 'elegant', label: 'Ele', font: 'var(--font-elegant)' },
+                      { id: 'technical', label: 'Tec', font: 'var(--font-technical)' },
+                      { id: 'friendly', label: 'Sof', font: 'var(--font-friendly)' }
+                    ].map((f) => (
+                      <button
+                        key={f.id}
+                        onClick={() => handleFontChange(f.id as FontFamily)}
+                        className={cn(
+                          "px-2 py-1 rounded-md text-[10px] uppercase tracking-tighter transition-all border",
+                          fontFamily === f.id ? "bg-brand text-white border-transparent" : "bg-surface hover:bg-surface-hover border-border text-text-muted"
+                        )}
+                        style={{ fontFamily: f.font }}
+                      >
+                        {f.label}
+                      </button>
+                    ))}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+              
+              <button 
+                onClick={() => {
+                  setIsFontSelectorOpen(!isFontSelectorOpen);
+                  setIsFontSizeSelectorOpen(false);
+                }}
+                className={cn(
+                  "hover:text-gray-800 transition-colors flex items-center gap-2 p-1.5",
+                  isFontSelectorOpen && "text-brand"
+                )} 
+                title="Phông chữ"
+              >
+                <CaseSensitive size={20} strokeWidth={1.2} />
+              </button>
+            </div>
+          </div>
+
+          {/* Mobile Appearance Settings */}
+          <div className="md:hidden">
+            <Popover>
+              <PopoverTrigger className="hover:text-brand transition-colors flex items-center p-1.5 cursor-pointer outline-none" title="Giao diện">
+                <Palette size={18} strokeWidth={1.2} />
+              </PopoverTrigger>
+              <PopoverContent side="bottom" align="end" sideOffset={12} className="w-72 p-4 space-y-6">
+                <div className="space-y-3">
+                  <h4 className="text-[10px] uppercase font-bold tracking-[0.2em] text-text/50">Màu nền</h4>
+                  <div className="flex flex-wrap gap-3">
+                    {[
+                      { id: 'default', color: '#f3f3f3', label: 'Mặc định' },
+                      { id: 'white', color: '#ffffff', label: 'Trắng' },
+                      { id: 'graphite', color: '#1a1a1a', label: 'Than chì' },
+                      { id: 'orange', color: '#fffaf0', label: 'Cam nhạt' },
+                      { id: 'purple', color: '#120d1d', label: 'Tím' }
+                    ].map((t) => (
+                      <button
+                        key={t.id}
+                        onClick={() => handleThemeChange(t.id as Theme)}
+                        className={cn(
+                          "w-8 h-8 rounded-full border transition-all",
+                          theme === t.id ? "border-brand border-2 scale-110 shadow-sm" : "border-border"
+                        )}
+                        style={{ backgroundColor: t.color }}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <h4 className="text-[10px] uppercase font-bold tracking-[0.2em] text-text/50">Cỡ chữ</h4>
+                  <div className="flex items-center gap-4">
+                    <button onClick={() => handleFontSizeChange(fontSize - 2)} className="w-8 h-8 flex items-center justify-center rounded-lg bg-surface border border-border shadow-sm">-</button>
+                    <span className="text-sm font-mono w-6 text-center">{fontSize}</span>
+                    <button onClick={() => handleFontSizeChange(fontSize + 2)} className="w-8 h-8 flex items-center justify-center rounded-lg bg-surface border border-border shadow-sm">+</button>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <h4 className="text-[10px] uppercase font-bold tracking-[0.2em] text-text/50">Phông chữ</h4>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      { id: 'modern', label: 'Modern', font: 'var(--font-modern)' },
+                      { id: 'elegant', label: 'Elegant', font: 'var(--font-elegant)' },
+                      { id: 'technical', label: 'Mono', font: 'var(--font-technical)' },
+                      { id: 'friendly', label: 'Soft', font: 'var(--font-friendly)' }
+                    ].map((f) => (
+                      <button
+                        key={f.id}
+                        onClick={() => handleFontChange(f.id as FontFamily)}
+                        className={cn(
+                          "px-3 py-2 rounded-lg text-xs transition-all border text-left",
+                          fontFamily === f.id ? "bg-brand text-white border-transparent" : "bg-surface border-border text-text-muted"
+                        )}
+                        style={{ fontFamily: f.font }}
+                      >
+                        {f.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </PopoverContent>
+            </Popover>
           </div>
 
           <Popover>
@@ -553,10 +622,50 @@ export default function App() {
               />
             </PopoverContent>
           </Popover>
+
+          <div className="flex items-center gap-2 pointer-events-auto">
+            <AnimatePresence mode="wait">
+              {vietlawView === 'action' && (
+                <motion.div
+                  key="vietlaw-text"
+                  initial={{ opacity: 0, x: 10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: 10 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <a 
+                    href="https://vietlaw.site" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="h-10 px-4 bg-brand-light/20 hover:bg-brand-light/30 text-brand rounded-xl font-medium flex items-center justify-center transition-all shadow-sm border border-brand-light/10"
+                  >
+                    VietLaw
+                  </a>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  onClick={() => setVietlawView(prev => prev === 'logo' ? 'action' : 'logo')}
+                  className={cn(
+                    "w-10 h-10 flex items-center justify-center bg-surface hover:bg-surface-hover rounded-xl transition-all duration-300 shadow-sm border border-border/50",
+                    vietlawView === 'action' && "bg-brand-light/20 rotate-90"
+                  )}
+                >
+                  <img src="/vietlaw.png" alt="VietLaw" className="w-7 h-7 object-contain" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" align="end" sideOffset={12}>
+                {vietlawView === 'logo' ? 'Mở VietLaw' : 'Thu gọn'}
+              </TooltipContent>
+            </Tooltip>
+          </div>
         </div>
 
         {/* Top Left Floating Menu */}
-        <div ref={menuRef} className="absolute top-2 left-4 md:top-3 md:left-6 z-40 flex flex-col gap-4 w-[calc(100%-2rem)] md:w-80 pointer-events-none">
+        <div ref={menuRef} className="absolute top-2 left-2 md:top-3 md:left-6 z-40 flex flex-col gap-4 w-[calc(100%-1rem)] md:w-80 pointer-events-none">
           {/* Logo & Agent Selector Row */}
           <div className="flex items-center gap-2 md:gap-4 pointer-events-auto w-max">
             <button
@@ -589,7 +698,7 @@ export default function App() {
                     <div className="flex items-center gap-2">
                       <DropdownMenu open={isAgentDropdownOpen} onOpenChange={setIsAgentDropdownOpen}>
                         <DropdownMenuTrigger
-                          className="h-10 px-4 gap-2 border-none shadow-none focus:ring-0 bg-brand-light/20 hover:bg-brand-light/30 rounded-xl min-w-[120px] max-w-[200px] flex justify-between items-center font-medium group transition-all outline-none"
+                          className="h-10 px-2 md:px-4 gap-1 md:gap-2 border-none shadow-none focus:ring-0 bg-brand-light/20 hover:bg-brand-light/30 rounded-xl min-w-[80px] max-w-[110px] md:max-w-[200px] flex justify-between items-center font-medium group transition-all outline-none text-xs md:text-sm"
                         >
                           <span className="truncate">
                             {config.profiles.find(p => p.id === config.activeProfileId)?.name || "Select Agent"}
